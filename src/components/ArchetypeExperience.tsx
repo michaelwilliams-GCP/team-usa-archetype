@@ -90,6 +90,38 @@ export function ArchetypeExperience() {
       </section>
 
       <DataVisualization data={sportStats} />
+
+      <section className="border-t border-white/10 bg-[#0a1424] px-4 py-12 md:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[#f6c756]">Submission readiness</p>
+            <h2 className="mt-3 max-w-2xl text-4xl font-black leading-none text-white sm:text-5xl">
+              Built as a complete Challenge 4 product.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
+              The app pairs a judge-ready local demo path with a production Cloud Run target, server-side Gemini analysis,
+              aggregate-only data handling, and automated checks for the main product flow.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ['Gemini server route', 'Persona panel runs behind /api/analyze with the API key kept off the client.'],
+              ['Cloud Run deployable', 'Standalone Next.js container, Cloud Build config, and /api/health readiness endpoint.'],
+              ['Paralympic parity', 'Each response includes a dedicated Paralympic archetype with equal result depth.'],
+              ['Judge-safe fallback', 'Demo mode keeps the full flow usable when live credentials are not present.'],
+            ].map(([title, description]) => (
+              <article key={title} className="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+                <div className="flex items-center gap-3">
+                  <span className="h-3 w-3 rounded-full bg-[#8ad7ff]" />
+                  <h3 className="text-xl font-black text-white">{title}</h3>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

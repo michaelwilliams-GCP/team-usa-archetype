@@ -381,6 +381,7 @@ export function AthleteForm({ data, loading, findClosestSports }: AthleteFormPro
                 {result.archetypes?.map((archetype) => (
                   <article
                     key={`${archetype.rank}-${archetype.sport}`}
+                    data-testid="archetype-card"
                     className="rounded-md border border-white/12 bg-white/[0.04] p-5 transition hover:border-[#f6c756]/45"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

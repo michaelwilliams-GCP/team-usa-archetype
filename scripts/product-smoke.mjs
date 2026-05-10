@@ -41,6 +41,13 @@ async function assertHttp(baseUrl) {
   const html = await home.text();
   if (!html.includes('Team USA Archetype Lab')) throw new Error('Home route did not render product title');
 
+  const health = await fetch(`${baseUrl}/api/health`);
+  if (!health.ok) throw new Error(`Health route returned ${health.status}`);
+  const healthJson = await health.json();
+  if (!healthJson.ok || healthJson.googleCloudTarget !== 'cloud-run') {
+    throw new Error('Health route did not return Cloud Run readiness metadata');
+  }
+
   const stats = await fetch(`${baseUrl}/data/team-usa-sport-stats.json`);
   if (!stats.ok) throw new Error(`Sport stats returned ${stats.status}`);
   const statsJson = await stats.json();
@@ -195,7 +202,7 @@ async function runBrowserSmoke(baseUrl, width, height, outputName) {
           expression: `(() => ({
             viewport: innerWidth,
             scrollWidth: document.documentElement.scrollWidth,
-            archetypeCards: document.querySelectorAll('article').length,
+            archetypeCards: document.querySelectorAll('[data-testid="archetype-card"]').length,
             hasDemoBadge: document.body.textContent.includes('Demo mode'),
           }))()`,
           returnByValue: true,

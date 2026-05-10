@@ -11,6 +11,7 @@ Interactive Next.js app that matches a fan profile against historical Team USA O
 - Synthesizes one structured result with two Olympic archetypes and one Paralympic archetype.
 - Falls back to deterministic demo-mode recommendations when `GEMINI_API_KEY` is not configured.
 - Renders a responsive scouting-room UI with charts and an embedded Looker Studio dashboard.
+- Ships with Cloud Run deployment files, a health endpoint, and browser smoke coverage for the core judging flow.
 
 ## Setup
 
@@ -55,6 +56,8 @@ npm run build:data
 
 See [docs/HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) for the Devpost copy, demo video outline, compliance notes, and final checklist.
 
+For hosted deployment, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). For data handling and limitations, see [docs/DATA_CARD.md](docs/DATA_CARD.md).
+
 ## Stack
 
 - Next.js App Router
@@ -63,3 +66,4 @@ See [docs/HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) for the Devpost
 - Chart.js / react-chartjs-2
 - PapaParse
 - Gemini via `@google/generative-ai`
+- Google Cloud Run deployment target

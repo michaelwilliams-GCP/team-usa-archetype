@@ -27,11 +27,19 @@ The experience is built to feel like a scouting-room command center: users can r
 - Unlisted YouTube demo video, maximum 3 minutes, in English or with English subtitles.
 - Devpost text description covering features, functionality, technologies, data sources, findings, and testing instructions.
 
+Repo-ready support for these assets is included:
+
+- `Dockerfile` and `cloudbuild.yaml` for Cloud Run.
+- `docs/DEPLOYMENT.md` with Google Cloud commands and verification steps.
+- `/api/health` for deployed service checks.
+- `docs/DATA_CARD.md` for source data, aggregation, limitations, and safety posture.
+
 ## Technologies Used
 
 - Next.js App Router and React.
 - Google Gemini via `@google/generative-ai` on the server route.
 - Google Cloud deployment target: Cloud Run is the strongest fit for this Next.js app.
+- Cloud Build and Artifact Registry via the included `cloudbuild.yaml`.
 - Chart.js and `react-chartjs-2` for aggregate athlete profile visualization.
 - PapaParse for regenerating local sport summaries from CSV source data.
 - Tailwind CSS for the product interface.
@@ -81,6 +89,14 @@ Production-style local run:
 ./run.sh --prod --port 3000
 ```
 
+Cloud Run deployment:
+
+```bash
+gcloud builds submit --config cloudbuild.yaml
+```
+
+Full deployment notes are in `docs/DEPLOYMENT.md`.
+
 ## Demo Video Outline
 
 Target length: 2:30 to 2:50.
@@ -125,14 +141,22 @@ Deploy to Cloud Run, add Vertex AI migration for enterprise Cloud alignment, add
 
 ## Final Submission Checklist
 
+Repo-ready items:
+
+- [x] Demo mode remains available locally for reviewers.
+- [x] `./run.sh --check` verifies lint, build, API behavior, and browser smoke flow.
+- [x] Cloud Run deployment files are included.
+- [x] `/api/health` is available for deployed service checks.
+- [x] Devpost selected challenge is Challenge 4.
+- [x] Description mentions Gemini, Google Cloud, data sources, and findings.
+- [x] Data card and compliance posture are documented.
+- [x] No athlete NIL, Olympic rings, torch marks, unauthorized Team USA/USOPC marks, finish times, or scoring results appear in the submission materials.
+
+Owner action before Devpost submit:
+
 - [ ] Hosted URL works without login.
 - [ ] `GEMINI_API_KEY` is configured in the hosted environment.
-- [ ] Demo mode remains available locally for reviewers.
-- [ ] `./run.sh --check` passes.
 - [ ] Repository is public.
 - [ ] Apache 2.0 license is visible in GitHub About/license UI.
-- [ ] Devpost selected challenge is Challenge 4.
-- [ ] Description mentions Gemini, Google Cloud, data sources, and findings.
 - [ ] Demo video is unlisted, English or subtitled, and no longer than 3 minutes.
 - [ ] Demo video shows the live product plus Google Cloud console, AI Studio, or code.
-- [ ] No athlete NIL, Olympic rings, torch marks, unauthorized Team USA/USOPC marks, finish times, or scoring results appear in the submission.
