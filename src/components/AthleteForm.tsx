@@ -1,10 +1,6 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
-console.log('Gemini API Key loaded:', !!process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 
 interface Archetype {
   rank: number;
@@ -68,139 +64,28 @@ export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }:
 
       const closestSports = findClosestSports(userProfile);
 
-      const context = closestSports.map((item: any) => 
-        `${item.sport}: Height ${item.stats.avgHeight?.toFixed(1)}cm, Weight ${item.stats.avgWeight?.toFixed(1)}kg, Age ${item.stats.avgAge?.toFixed(1)}, Medal Rate ${(item.stats.medalRate * 100).toFixed(1)}%`
-      ).join('\n');
-
-      // US measurements for the prompt
+      // US measurements for the API payload
       const heightInches = totalInches;
       const weightLbs = Math.round(parseFloat(formData.weightLbs) || 0);
-      const bmi = (weightLbs / ((heightInches / 39.37) ** 2)).toFixed(1);
+      const age = parseInt(formData.age);
+      const gender = formData.gender;
+      const endurance = formData.endurance;
+      const power = formData.power;
 
-      const prompt = `You are the most sophisticated Team USA athlete analytics engine ever built — a fusion of 120 years of Olympic and Paralympic biomechanics data, sports science research, and the storytelling instincts of a world-class ESPN documentary director.
-
-Your job: make this fan feel genuinely seen. Not generic. Not vague. IMPOSSIBLY SPECIFIC. When they read their result they should think "how did it know that?" That specificity is the wow.
-
-═══════════════════════════════════════
-FAN BIOMETRIC PROFILE (PRE-COMPUTED FOR PRECISION)
-═══════════════════════════════════════
-Height: ${heightInches} inches exactly (${Math.floor(heightInches/12)}'${heightInches%12}")
-Weight: ${weightLbs} lbs exactly
-BMI: ${bmi} (calculated precisely)
-Age: ${formData.age} years old
-Gender: ${formData.gender}
-Endurance: ${formData.endurance}/100
-Power: ${formData.power}/100
-
-Historical Team USA athlete data context (closest matches):
-${context}
-
-═══════════════════════════════════════
-YOUR MISSION: CREATE THE "HOW DID IT KNOW THAT?" MOMENT
-═══════════════════════════════════════
-Identify 3 Team USA Athlete Archetypes. Make each one feel like it was written specifically for THIS person's exact numbers — not a generic body type category.
-
-For EACH archetype you must deliver:
-
-1. BIOMETRIC PRECISION — Reference the fan's ACTUAL numbers with surgical specificity using US measurements:
-   "At ${heightInches} inches, your frame sits exactly 2 inches above the historical average for Team USA swimmers"
-   "Your ${weightLbs} lb build falls within the top 12% of USA track athletes historically"
-   "With a BMI of ${bmi}, you align with the optimal range for 87% of successful Team USA competitors"
-   Include specific weight ranges and age ranges for each sport. Use real data averages from the context above. Make it feel like their exact measurements were destiny.
-
-2. AGE & WEIGHT RANGE ANALYSIS — For each sport, specify the typical US ranges:
-   "Team USA \${sport} athletes typically range from 18-35 years old, with your ${formData.age} age placing you in the [early/peak/late] development phase"
-   "Weight range for elite \${sport} athletes: 140-200 lbs, with your ${weightLbs} lbs fitting perfectly in the [upper/middle/lower] third"
-   "Age range for \${sport} success: 20-32 years, making your ${formData.age} age [ideal/developing/mature] for this sport"
-
-4. FUN FACT BANNER — One impossible-to-ignore stat about their body profile in Team USA history:
-   "Only 3% of Team USA athletes in history have matched your exact ${heightInches}-inch / ${weightLbs}-lb build ratio"
-   "Athletes with your BMI have won 67% of all Team USA gold medals since 1980"
-   "Your biometric profile appears in just 1.2% of the 120-year Team USA athlete database"
-
-5. CONDITIONAL LANGUAGE — Always use: "could align with," "profiles like yours have historically," "your biometrics suggest affinity for," "this build has often found success in." NEVER guarantee results.
-
-6. PARALYMPIC PARITY — The 3rd archetype MUST be a Paralympic sport. Give it the same analytical depth, the same golden era moment, the same excitement. Do not treat it as a footnote.
-
-7. ARCHETYPE NAMES — Invent bold, original names that feel like superhero classifications:
-   "The Structural Powerhouse," "The Aerodynamic Ghost," "The Coiled Spring," "The Iron Meridian," "The Kinetic Architect," "The Silent Accelerator," "The Quantum Frame," "The Velocity Matrix," "The Precision Forge"
-
-═══════════════════════════════════════
-CRITICAL OUTPUT RULES
-═══════════════════════════════════════
-- Return ONLY valid JSON. Zero markdown. Zero preamble. No backticks.
-- Every string field must be complete — no "..." or placeholders
-- why field: 4 sentences minimum, reference actual inches/lbs/BMI numbers with precision, include age and weight ranges
-- goldenEra field: must name a real Games city and year with specific achievement
-- historicalNote: must include a specific pattern or trend with real percentages/numbers
-- funFact: must be a surprising, specific stat about this exact body profile
-- lateBloomer: must reference their exact age ${formData.age} and position it in the development arc
-
-{
-  "overallArchetype": "bold single archetype name for this fan",
-  "tagline": "one punchy sentence — their athletic DNA in plain english",
-  "funFact": "one surprising, specific stat about this exact body profile in Team USA history",
-  "archetypes": [
-    {
-      "rank": 1,
-      "archetypeName": "bold creative name",
-      "sport": "sport name",
-      "paralympic": false,
-      "matchScore": 94,
-      "tagline": "punchy one-liner — make it feel impossibly personal",
-      "why": "4+ sentences referencing actual ${heightInches} inch/${weightLbs} lb/BMI ${bmi} numbers and how they compare to historical USA averages. Include typical age range (18-35) and weight range (140-200 lbs) for this sport. Use conditional language. Make it feel like their exact measurements were destiny.",
-      "goldenEra": "One cinematic sentence about a specific Games year+city and what athletes with this EXACT profile achieved for Team USA",
-      "historicalNote": "2-3 sentences on a specific pattern or trend in Team USA history for this sport with similar biometrics, including real percentages or numbers",
-      "lateBloomer": "One sentence about where age ${formData.age} sits in the development arc for this sport, with specific context",
-      "traits": ["specific trait 1", "specific trait 2", "specific trait 3", "specific trait 4"]
-    },
-    {
-      "rank": 2,
-      "archetypeName": "bold creative name",
-      "sport": "sport name",
-      "paralympic": false,
-      "matchScore": 89,
-      "tagline": "punchy one-liner with biometric specificity",
-      "why": "4+ sentences with real numbers and conditional language — same depth as rank 1",
-      "goldenEra": "specific Games year+city cinematic moment with exact profile reference",
-      "historicalNote": "specific pattern or trend with real data points",
-      "lateBloomer": "age arc sentence with ${formData.age} specificity",
-      "traits": ["trait 1", "trait 2", "trait 3", "trait 4"]
-    },
-    {
-      "rank": 3,
-      "archetypeName": "bold creative name",
-      "sport": "Paralympic sport name",
-      "paralympic": true,
-      "matchScore": 83,
-      "tagline": "punchy one-liner with same depth as others",
-      "why": "4+ sentences with real numbers and conditional language — same analytical depth as ranks 1 and 2",
-      "goldenEra": "specific Paralympic Games year+city cinematic moment with exact profile reference",
-      "historicalNote": "specific Paralympic Team USA pattern or trend with real data points",
-      "lateBloomer": "age arc sentence with ${formData.age} specificity",
-      "traits": ["trait 1", "trait 2", "trait 3", "trait 4"]
-    }
-  ]
-}`;
-
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      console.log('Making Gemini API call...');
-      const result = await model.generateContent(prompt);
-      console.log('Gemini API call completed');
-      const response = await result.response;
-      const text = response.text();
-      console.log('Gemini response:', text);
-
-      try {
-        const parsedResult = JSON.parse(text.replace(/```json\n?|\n?```/g, "").trim());
-        setResult(parsedResult);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Raw response:', text);
-        setResult(text);
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heightInches, weightLbs, age, gender, endurance, power, closestSports }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: 'Analysis failed' }));
+        setResult(error || 'Analysis failed');
+        return;
       }
-    } catch (error) {
-      console.error('Error:', error);
+      const parsed: ArchetypeResult = await res.json();
+      setResult(parsed);
+    } catch (err) {
+      console.error(err);
       setResult('Sorry, there was an error analyzing your profile. Please try again.');
     } finally {
       setAnalyzing(false);
@@ -359,7 +244,7 @@ CRITICAL OUTPUT RULES
             {analyzing ? (
               <span className="flex items-center justify-center">
                 <span className="inline-block animate-spin mr-2">⚙️</span>
-                Analyzing Your Profile...
+                Consulting our team of experts…
               </span>
             ) : (
               '🎯 FIND MY SPORTS!'
