@@ -84,14 +84,14 @@ export function DataVisualization({ data, theme = 'dark' }: { data: SportStatMap
     theme === 'light'
       ? {
           point: '#bf0d3e',
-          pointBorder: '#161616',
+          pointBorder: '#111111',
           bar: '#bf0d3e',
-          tick: '#4d4d4d',
-          title: '#242424',
-          grid: '#d6cdbb',
-          tooltipBg: '#ffffff',
-          tooltipText: '#161616',
-          tooltipBorder: '#805500',
+          tick: '#333333',
+          title: '#111111',
+          grid: '#bbae94',
+          tooltipBg: '#fffefa',
+          tooltipText: '#111111',
+          tooltipBorder: '#573800',
         }
       : {
           point: '#f6c756',

@@ -241,6 +241,78 @@ async function runBrowserSmoke(baseUrl, width, height, outputName) {
       if (value.archetypeCards !== 3) throw new Error(`Expected 3 archetype cards, found ${value.archetypeCards}`);
       if (!value.hasDemoBadge) throw new Error('Demo-mode badge missing in browser result');
 
+      const contrast = await page.send('Runtime.evaluate', {
+        expression: `(() => {
+          function rgb(value) {
+            const match = String(value).match(/rgba?\\(([^)]+)\\)/);
+            if (!match) return null;
+            const parts = match[1].split(',').map((part) => Number.parseFloat(part));
+            return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+          }
+
+          function luminance(color) {
+            const channel = (value) => {
+              const normalized = value / 255;
+              return normalized <= 0.03928
+                ? normalized / 12.92
+                : Math.pow((normalized + 0.055) / 1.055, 2.4);
+            };
+            return 0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b);
+          }
+
+          function contrastRatio(foreground, background) {
+            const first = luminance(foreground);
+            const second = luminance(background);
+            return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+          }
+
+          function effectiveBackground(element) {
+            for (let node = element; node; node = node.parentElement) {
+              const color = rgb(getComputedStyle(node).backgroundColor);
+              if (color && color.a > 0.05) return color;
+            }
+            return rgb(getComputedStyle(document.body).backgroundColor);
+          }
+
+          const failures = [];
+          const nodes = [...document.querySelectorAll('main *')].filter((element) => {
+            const rect = element.getBoundingClientRect();
+            const styles = getComputedStyle(element);
+            if (rect.width < 1 || rect.height < 1 || styles.visibility === 'hidden' || styles.display === 'none') {
+              return false;
+            }
+            return [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+          });
+
+          for (const element of nodes) {
+            const styles = getComputedStyle(element);
+            const foreground = rgb(styles.color);
+            const background = effectiveBackground(element);
+            if (!foreground || !background) continue;
+
+            const ratio = contrastRatio(foreground, background);
+            const size = Number.parseFloat(styles.fontSize);
+            const weight = Number.parseFloat(styles.fontWeight) || 400;
+            const largeText = size >= 24 || (size >= 18.66 && weight >= 700);
+            const minimum = largeText ? 3 : 4.5;
+            if (ratio < minimum) {
+              failures.push({
+                text: element.textContent.trim().slice(0, 60),
+                ratio: Number(ratio.toFixed(2)),
+                minimum,
+              });
+            }
+          }
+
+          return { theme: document.documentElement.dataset.theme, failures: failures.slice(0, 8), count: failures.length };
+        })()`,
+        returnByValue: true,
+      });
+      if (contrast.result.value.theme !== 'light') throw new Error('Light-mode contrast check did not run in light mode');
+      if (contrast.result.value.count > 0) {
+        throw new Error(`Light-mode contrast failures: ${JSON.stringify(contrast.result.value.failures)}`);
+      }
+
       const screenshot = await page.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(os.tmpdir(), outputName), Buffer.from(screenshot.data, 'base64'));
     } finally {
