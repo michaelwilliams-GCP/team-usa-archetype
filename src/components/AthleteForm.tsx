@@ -36,8 +36,9 @@ interface AthleteFormProps {
 
 export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }: AthleteFormProps) {
   const [formData, setFormData] = useState({
-    height: '',
-    weight: '',
+    feet: '',
+    inches: '',
+    weightLbs: '',
     age: '',
     gender: '',
     endurance: 50,
@@ -46,27 +47,7 @@ export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }:
   const [result, setResult] = useState<ArchetypeResult | string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
-  const brand = variant === 'B'
-    ? {
-        card: 'bg-slate-900 text-white',
-        heading: 'text-2xl font-semibold text-white',
-        label: 'text-sm font-medium text-slate-100 mb-1',
-        input: 'w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white',
-        button: 'w-full bg-amber-500 text-slate-900 hover:bg-amber-600 focus:ring-2 focus:ring-amber-400',
-        badge: 'px-3 py-1 rounded-full text-sm',
-        status: loading ? 'bg-amber-100 text-amber-900' : data ? 'bg-emerald-100 text-emerald-900' : 'bg-red-100 text-red-800',
-      }
-    : {
-        card: 'bg-white dark:bg-gray-800',
-        heading: 'text-2xl font-semibold text-gray-900 dark:text-white',
-        label: 'text-sm font-medium text-gray-700 dark:text-gray-300 mb-1',
-        input: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-        button: 'w-full bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500',
-        badge: 'px-3 py-1 rounded-full text-sm',
-        status: loading ? 'bg-yellow-100 text-yellow-800' : data ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
-      };
-
-  const titleText = variant === 'B' ? 'Peak Performance Profile' : 'Your Athlete Profile';
+  const titleText = 'Enter Your Athlete Profile';
   const statusText = loading ? 'Loading data...' : data ? `${Object.keys(data).length} sports loaded` : 'Data error';
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -74,9 +55,14 @@ export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }:
     setAnalyzing(true);
 
     try {
+      // Convert US measurements to metric for backend
+      const totalInches = (parseInt(formData.feet) || 0) * 12 + (parseInt(formData.inches) || 0);
+      const heightCm = Math.round(totalInches * 2.54);
+      const weightKg = Math.round((parseFloat(formData.weightLbs) || 0) / 2.20462);
+      
       const userProfile = {
-        height: parseFloat(formData.height),
-        weight: parseFloat(formData.weight),
+        height: heightCm,
+        weight: weightKg,
         age: parseInt(formData.age)
       };
 
@@ -86,9 +72,9 @@ export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }:
         `${item.sport}: Height ${item.stats.avgHeight?.toFixed(1)}cm, Weight ${item.stats.avgWeight?.toFixed(1)}kg, Age ${item.stats.avgAge?.toFixed(1)}, Medal Rate ${(item.stats.medalRate * 100).toFixed(1)}%`
       ).join('\n');
 
-      // Convert to US measurements
-      const heightInches = Math.round(parseFloat(formData.height) / 2.54);
-      const weightLbs = Math.round(parseFloat(formData.weight) * 2.20462);
+      // US measurements for the prompt
+      const heightInches = totalInches;
+      const weightLbs = Math.round(parseFloat(formData.weightLbs) || 0);
       const bmi = (weightLbs / ((heightInches / 39.37) ** 2)).toFixed(1);
 
       const prompt = `You are the most sophisticated Team USA athlete analytics engine ever built — a fusion of 120 years of Olympic and Paralympic biomechanics data, sports science research, and the storytelling instincts of a world-class ESPN documentary director.
@@ -128,7 +114,7 @@ For EACH archetype you must deliver:
    "Age range for \${sport} success: 20-32 years, making your ${formData.age} age [ideal/developing/mature] for this sport"
 
 4. FUN FACT BANNER — One impossible-to-ignore stat about their body profile in Team USA history:
-   "Only 3% of Team USA athletes in history have matched your exact ${formData.height}cm/${formData.weight}kg build ratio"
+   "Only 3% of Team USA athletes in history have matched your exact ${heightInches}-inch / ${weightLbs}-lb build ratio"
    "Athletes with your BMI have won 67% of all Team USA gold medals since 1980"
    "Your biometric profile appears in just 1.2% of the 120-year Team USA athlete database"
 
@@ -211,7 +197,7 @@ CRITICAL OUTPUT RULES
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
         console.error('Raw response:', text);
-        setResult(text); // Fallback to raw text if JSON parsing fails
+        setResult(text);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -227,49 +213,67 @@ CRITICAL OUTPUT RULES
   };
 
   return (
-    <div className="max-w-full mx-auto">
-      <div className={`${brand.card} rounded-lg shadow-lg p-6 mb-6`}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className={`${brand.heading}`}>
+    <div className="w-full">
+      <div className="bg-slate-900 text-white rounded-xl shadow-2xl p-8 animate-bounce-in-up">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-black">
             {titleText}
           </h2>
-          <span className={`${brand.badge} ${brand.status}`}>
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${loading ? 'bg-blue-500 text-white animate-pulse' : data ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
             {statusText}
           </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className={`block ${brand.label}`}>
-                Height (cm)
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="group">
+              <label className="text-sm font-medium text-slate-100 mb-1 block">
+                Height (Feet)
               </label>
               <input
                 type="number"
-                name="height"
-                value={formData.height}
+                name="feet"
+                value={formData.feet}
                 onChange={handleChange}
                 required
-                className={brand.input}
-                placeholder="170"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
+                placeholder="5"
+                min="3"
+                max="8"
               />
             </div>
-            <div>
-              <label className={`block ${brand.label}`}>
-                Weight (kg)
+            <div className="group">
+              <label className="text-sm font-medium text-slate-100 mb-1 block">
+                Inches
               </label>
               <input
                 type="number"
-                name="weight"
-                value={formData.weight}
+                name="inches"
+                value={formData.inches}
                 onChange={handleChange}
                 required
-                className={brand.input}
-                placeholder="70"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
+                placeholder="10"
+                min="0"
+                max="11"
               />
             </div>
-            <div>
-              <label className={`block ${brand.label}`}>
+            <div className="group">
+              <label className="text-sm font-medium text-slate-100 mb-1 block">
+                Weight (lbs)
+              </label>
+              <input
+                type="number"
+                name="weightLbs"
+                value={formData.weightLbs}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
+                placeholder="160"
+              />
+            </div>
+            <div className="group">
+              <label className="text-sm font-medium text-slate-100 mb-1 block">
                 Age
               </label>
               <input
@@ -278,12 +282,12 @@ CRITICAL OUTPUT RULES
                 value={formData.age}
                 onChange={handleChange}
                 required
-                className={brand.input}
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
                 placeholder="25"
               />
             </div>
-            <div>
-              <label className={`block ${brand.label}`}>
+            <div className="group">
+              <label className="text-sm font-medium text-slate-100 mb-1 block">
                 Gender
               </label>
               <select
@@ -291,7 +295,7 @@ CRITICAL OUTPUT RULES
                 value={formData.gender}
                 onChange={handleChange}
                 required
-                className={brand.input}
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
               >
                 <option value="">Select gender</option>
                 <option value="Male">Male</option>
@@ -301,11 +305,14 @@ CRITICAL OUTPUT RULES
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6 bg-slate-800/50 rounded-lg p-6 border border-slate-700">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Endurance vs Power: {formData.endurance}/100
-              </label>
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-bold text-amber-300">
+                  Endurance vs Power
+                </label>
+                <span className="text-lg font-black text-amber-400">{formData.endurance}/100</span>
+              </div>
               <input
                 type="range"
                 name="endurance"
@@ -313,18 +320,21 @@ CRITICAL OUTPUT RULES
                 max="100"
                 value={formData.endurance}
                 onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Power-focused</span>
-                <span>Endurance-focused</span>
+              <div className="flex justify-between text-xs text-slate-400 mt-2 font-semibold">
+                <span>💪 Power</span>
+                <span>🏃 Endurance</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Strength vs Speed: {formData.power}/100
-              </label>
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-bold text-amber-300">
+                  Strength vs Speed
+                </label>
+                <span className="text-lg font-black text-amber-400">{formData.power}/100</span>
+              </div>
               <input
                 type="range"
                 name="power"
@@ -332,11 +342,11 @@ CRITICAL OUTPUT RULES
                 max="100"
                 value={formData.power}
                 onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Speed-focused</span>
-                <span>Strength-focused</span>
+              <div className="flex justify-between text-xs text-slate-400 mt-2 font-semibold">
+                <span>⚡ Speed</span>
+                <span>🔨 Strength</span>
               </div>
             </div>
           </div>
@@ -344,100 +354,118 @@ CRITICAL OUTPUT RULES
           <button
             type="submit"
             disabled={analyzing || loading || !data}
-            className={`${brand.button} py-3 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none`}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 font-bold py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
           >
-            {analyzing ? 'Analyzing...' : 'Find My Sports!'}
+            {analyzing ? (
+              <span className="flex items-center justify-center">
+                <span className="inline-block animate-spin mr-2">⚙️</span>
+                Analyzing Your Profile...
+              </span>
+            ) : (
+              '🎯 FIND MY SPORTS!'
+            )}
           </button>
         </form>
       </div>
 
       {result && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="animate-scale-in mt-8">
           {typeof result === 'string' ? (
             <>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-2xl font-black text-white mb-6 text-center">
                 Your Sport Matches
               </h3>
-              <div className="prose dark:prose-invert max-w-none">
+              <div className="space-y-4">
                 {result.split('\n').map((line, index) => (
-                  <p key={index} className="mb-2">{line}</p>
+                  <p key={index} className="text-slate-200 leading-relaxed">{line}</p>
                 ))}
               </div>
             </>
           ) : (
             <>
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {result.overallArchetype}
-                </h3>
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                  {result.tagline}
-                </p>
-                <div className="bg-gradient-to-r from-blue-50 to-red-50 dark:from-blue-900/20 dark:to-red-900/20 rounded-lg p-4 border-l-4 border-blue-500">
-                  <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">🏆 Fun Fact</p>
-                  <p className="text-blue-700 dark:text-blue-300">{result.funFact}</p>
+              <div className="mb-8 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 p-1 rounded-2xl animate-glow">
+                <div className="bg-slate-900 rounded-2xl p-8">
+                  <h3 className="text-5xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent mb-3 animate-pulse">
+                    {result.overallArchetype}
+                  </h3>
+                  <p className="text-xl text-amber-300 font-bold mb-6">
+                    "{result.tagline}"
+                  </p>
+                  <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl p-6 border-2 border-amber-500 shadow-lg">
+                    <p className="text-sm font-bold text-amber-300 mb-2">🏆 TEAM USA HISTORICAL INSIGHT</p>
+                    <p className="text-lg text-amber-100 font-semibold">{result.funFact}</p>
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-6">
-                {result.archetypes?.map((archetype) => (
-                  <div key={archetype.rank} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl font-bold text-gray-400">#{archetype.rank}</span>
+                {result.archetypes?.map((archetype, idx) => (
+                  <div 
+                    key={archetype.rank} 
+                    className="border-2 border-amber-500 rounded-xl p-8 bg-gradient-to-br from-slate-800 to-slate-900 shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 hover:border-amber-400"
+                    style={{ animationDelay: `${idx * 0.1}s` }}
+                  >
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-5xl font-black bg-gradient-to-br from-amber-400 to-orange-500 rounded-full w-16 h-16 flex items-center justify-center text-slate-900">
+                          #{archetype.rank}
+                        </div>
                         <div>
-                          <h4 className="text-xl font-bold text-gray-900 dark:text-white">
+                          <h4 className="text-3xl font-black text-amber-300">
                             {archetype.archetypeName}
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {archetype.sport} {archetype.paralympic && '🏅'}
+                          <p className="text-lg text-slate-300 font-bold">
+                            {archetype.sport} {archetype.paralympic && '🏅 PARALYMPIC'}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-green-600">{archetype.matchScore}%</div>
-                        <div className="text-xs text-gray-500">Match Score</div>
+                        <div className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">{archetype.matchScore}%</div>
+                        <div className="text-sm text-slate-400 font-bold mt-1">MATCH SCORE</div>
                       </div>
                     </div>
 
-                    <p className="text-gray-700 dark:text-gray-300 mb-4 italic">
-                      "{archetype.tagline}"
-                    </p>
+                    <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg p-4 mb-6 border border-amber-500/30 italic">
+                      <p className="text-xl text-amber-200 font-semibold">"{archetype.tagline}"</p>
+                    </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div>
-                        <h5 className="font-semibold text-gray-900 dark:text-white mb-2">Why This Sport?</h5>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        <h5 className="font-black text-amber-400 mb-3 text-lg">💪 WHY THIS SPORT?</h5>
+                        <p className="text-slate-200 text-base leading-relaxed">
                           {archetype.why}
                         </p>
                       </div>
 
-                      <div>
-                        <h5 className="font-semibold text-gray-900 dark:text-white mb-2">Golden Era Moment</h5>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                      <div className="bg-slate-800/50 rounded-lg p-4 border-l-4 border-amber-500">
+                        <h5 className="font-black text-amber-300 mb-2 text-lg">🌟 GOLDEN ERA MOMENT</h5>
+                        <p className="text-slate-200 leading-relaxed">
                           {archetype.goldenEra}
                         </p>
                       </div>
 
                       <div>
-                        <h5 className="font-semibold text-gray-900 dark:text-white mb-2">Historical Pattern</h5>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        <h5 className="font-black text-amber-400 mb-3 text-lg">📊 HISTORICAL PATTERN</h5>
+                        <p className="text-slate-200 leading-relaxed">
                           {archetype.historicalNote}
                         </p>
                       </div>
 
                       <div>
-                        <h5 className="font-semibold text-gray-900 dark:text-white mb-2">Age Development Arc</h5>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        <h5 className="font-black text-amber-400 mb-3 text-lg">📈 YOUR DEVELOPMENT ARC</h5>
+                        <p className="text-slate-200 leading-relaxed">
                           {archetype.lateBloomer}
                         </p>
                       </div>
 
                       <div>
-                        <h5 className="font-semibold text-gray-900 dark:text-white mb-2">Key Traits</h5>
-                        <div className="flex flex-wrap gap-2">
+                        <h5 className="font-black text-amber-400 mb-3 text-lg">⚡ KEY TRAITS</h5>
+                        <div className="flex flex-wrap gap-3">
                           {archetype.traits?.map((trait, index) => (
-                            <span key={index} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm">
+                            <span 
+                              key={index} 
+                              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 rounded-full text-sm font-bold shadow-lg hover:shadow-amber-500/50 transition-all transform hover:scale-110"
+                            >
                               {trait}
                             </span>
                           ))}

@@ -4,69 +4,54 @@ import { AthleteForm } from '@/components/AthleteForm'
 import { DataVisualization } from '@/components/DataVisualization'
 import { useOlympicData } from '@/useOlympicData'
 
-const brandVariants = [
-  {
-    id: 'A',
-    label: 'Variant A',
-    title: 'Find Your Sport',
-    subtitle: 'Discover which Olympic and Paralympic sports match your athlete archetype.',
-    cardClass: 'bg-white/90 border-slate-200 text-slate-900 dark:bg-gray-900 dark:border-gray-700 dark:text-white',
-    badgeClass: 'bg-blue-100 text-blue-900'
-  },
-  {
-    id: 'B',
-    label: 'Variant B',
-    title: 'Peak Performance Lab',
-    subtitle: 'A high-performance brand experience for ambitious Team USA athletes.',
-    cardClass: 'bg-slate-950/95 border-slate-800 text-white',
-    badgeClass: 'bg-amber-100 text-amber-900'
-  }
-] as const
-
 export default function Home() {
   const { sportStats: data, loading, findClosestSports } = useOlympicData();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-red-50 dark:from-blue-950 dark:to-red-950">
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            A/B Brand Preview
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Compare two brand directions for the same Team USA athlete recommendation experience.
-          </p>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Same data and recommendation logic, different visual tone and brand styling.
-          </p>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 -z-10" />
+      <div className="fixed inset-0 opacity-30 -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-1/2 right-0 w-96 h-96 bg-red-500 rounded-full mix-blend-screen filter blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-amber-500 rounded-full mix-blend-screen filter blur-3xl animate-pulse" style={{ animationDuration: '12s', animationDelay: '4s' }} />
+      </div>
+
+      <div className="relative container mx-auto px-4 py-12">
+        {/* Header */}
+        <header className="mb-16 animate-fade-in">
+          <div className="text-center mb-8">
+            <h1 className="text-7xl font-black tracking-tighter text-white mb-4 animate-slide-down">
+              FIND YOUR
+              <span className="block bg-gradient-to-r from-blue-400 via-red-400 to-amber-400 bg-clip-text text-transparent animate-pulse">
+                OLYMPIC ARCHETYPE
+              </span>
+            </h1>
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto animate-fade-in-delay">
+              Discover the sports where athletes with your exact measurements dominate. Backed by 130 years of Team USA Olympic data.
+            </p>
+          </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {brandVariants.map((variant) => (
-            <section key={variant.id} className={`rounded-3xl border p-6 shadow-xl ${variant.cardClass}`}>
-              <div className="mb-6">
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${variant.badgeClass}`}>
-                  {variant.label}
-                </span>
-                <h2 className="mt-4 text-3xl font-bold">
-                  {variant.title}
-                </h2>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  {variant.subtitle}
-                </p>
-              </div>
-
+        {/* Main Content Card */}
+        <div className="max-w-4xl mx-auto mb-12 animate-scale-in">
+          <div className="relative group">
+            {/* Animated border glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-red-500 to-amber-500 rounded-3xl p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+            
+            <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-8 shadow-2xl">
               <AthleteForm
                 data={data}
                 loading={loading}
                 findClosestSports={findClosestSports}
-                variant={variant.id}
+                variant="B"
               />
-            </section>
-          ))}
+            </div>
+          </div>
         </div>
 
-        <div className="mb-8">
+        {/* Data Visualization */}
+        <div className="max-w-6xl mx-auto animate-fade-in-delay-2">
           <DataVisualization data={data} />
         </div>
       </div>

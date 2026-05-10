@@ -66,10 +66,13 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          color: '#e2e8f0',
+          font: { size: 12, weight: '600' }
+        }
       },
       title: {
-        display: true,
-        text: 'Average Height vs Weight by Sport (Team USA Athletes)',
+        display: false,
       },
       tooltip: {
         callbacks: {
@@ -90,14 +93,20 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
       x: {
         title: {
           display: true,
-          text: 'Average Height (cm)'
-        }
+          text: 'Average Height (cm)',
+          color: '#e2e8f0'
+        },
+        ticks: { color: '#cbd5e1' },
+        grid: { color: 'rgba(203, 213, 225, 0.1)' }
       },
       y: {
         title: {
           display: true,
-          text: 'Average Weight (kg)'
-        }
+          text: 'Average Weight (kg)',
+          color: '#e2e8f0'
+        },
+        ticks: { color: '#cbd5e1' },
+        grid: { color: 'rgba(203, 213, 225, 0.1)' }
       }
     }
   };
@@ -113,9 +122,10 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
     datasets: [{
       label: 'Medal Rate (%)',
       data: topSports.map(([, stats]) => stats.medalRate * 100),
-      backgroundColor: 'rgba(34, 197, 94, 0.6)',
+      backgroundColor: 'rgba(34, 197, 94, 0.7)',
       borderColor: 'rgba(34, 197, 94, 1)',
-      borderWidth: 1,
+      borderWidth: 2,
+      borderRadius: 6,
     }]
   };
 
@@ -124,27 +134,37 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          color: '#e2e8f0',
+          font: { size: 12, weight: '600' }
+        }
       },
       title: {
-        display: true,
-        text: 'Top 15 Sports by Medal Rate (Team USA)',
+        display: false,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: { color: '#cbd5e1' },
+        grid: { color: 'rgba(203, 213, 225, 0.1)' },
         title: {
           display: true,
-          text: 'Medal Rate (%)'
+          text: 'Medal Rate (%)',
+          color: '#e2e8f0'
         }
+      },
+      x: {
+        ticks: { color: '#cbd5e1' },
+        grid: { color: 'rgba(203, 213, 225, 0.1)' }
       }
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-        Team USA Athlete Data Insights
+    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 border-2 border-slate-700 animate-fade-in-delay-2">
+      <h2 className="text-4xl font-black mb-8 text-center bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+        📈 EXPLORE TEAM USA ATHLETE PROFILES
       </h2>
 
       <div className="mt-4 rounded-3xl border border-blue-200/80 bg-blue-50/90 p-5 shadow-lg dark:border-blue-700/60 dark:bg-slate-950 dark:text-slate-100 mb-6">
@@ -177,21 +197,25 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
-            Variant A: Height vs Weight Analysis
-          </h3>
-          <div className="h-96">
-            <Scatter data={scatterData} options={scatterOptions} />
+        <div className="animate-fade-in-delay">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-blue-500 shadow-2xl hover:shadow-blue-500/50 transition-all">
+            <h3 className="text-xl font-black text-blue-300 mb-4 text-center uppercase tracking-wide">
+              📊 HEIGHT VS WEIGHT
+            </h3>
+            <div className="h-96 bg-slate-700/50 rounded-lg p-3">
+              <Scatter data={scatterData} options={scatterOptions} />
+            </div>
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
-            Variant B: Medal Rate Performance
-          </h3>
-          <div className="h-96">
-            <Bar data={barData} options={barOptions} />
+        <div className="animate-fade-in-delay-2">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-emerald-500 shadow-2xl hover:shadow-emerald-500/50 transition-all">
+            <h3 className="text-xl font-black text-emerald-300 mb-4 text-center uppercase tracking-wide">
+              🏆 MEDAL RATE PERFORMANCE
+            </h3>
+            <div className="h-96 bg-slate-700/50 rounded-lg p-3">
+              <Bar data={barData} options={barOptions} />
+            </div>
           </div>
         </div>
       </div>
