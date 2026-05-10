@@ -28,14 +28,17 @@ GEMINI_API_KEY=your_actual_api_key
 Run the app:
 
 ```bash
-npm run dev
+./run.sh
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Use live Gemini mode by adding `GEMINI_API_KEY` to `.env.local`. Without a key, the product runs deterministic demo mode so the interface and judging flow still work.
+
 ## Scripts
 
 ```bash
+./run.sh --check
 npm run lint
 npm run build
 npm run smoke
@@ -47,6 +50,10 @@ Regenerate the sport-stat summary after replacing `public/data/athlete_events.cs
 ```bash
 npm run build:data
 ```
+
+## Hackathon Submission
+
+See [docs/HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) for the Devpost copy, demo video outline, compliance notes, and final checklist.
 
 ## Stack
 
