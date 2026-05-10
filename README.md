@@ -5,9 +5,11 @@ Interactive Next.js app that matches a fan profile against historical Team USA O
 ## What It Does
 
 - Loads Team USA athlete data from `public/data/athlete_events.csv`.
+- Serves a precomputed sport-stat summary from `public/data/team-usa-sport-stats.json` for fast first use.
 - Computes closest sport profiles by height, weight, age, medal rate, and golden-year context.
 - Runs three server-side Gemini personas: coach, sports scientist, and historian.
 - Synthesizes one structured result with two Olympic archetypes and one Paralympic archetype.
+- Falls back to deterministic demo-mode recommendations when `GEMINI_API_KEY` is not configured.
 - Renders a responsive scouting-room UI with charts and an embedded Looker Studio dashboard.
 
 ## Setup
@@ -36,6 +38,14 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 npm run lint
 npm run build
+npm run smoke
+npm test
+```
+
+Regenerate the sport-stat summary after replacing `public/data/athlete_events.csv`:
+
+```bash
+npm run build:data
 ```
 
 ## Stack

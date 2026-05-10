@@ -4,6 +4,7 @@ import { runCoach } from '@/lib/agents/coach';
 import { runScientist } from '@/lib/agents/scientist';
 import { runHistorian } from '@/lib/agents/historian';
 import { runOrchestrator } from '@/lib/agents/orchestrator';
+import { generateDemoRecommendation } from '@/lib/agents/demo';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -59,7 +60,7 @@ export async function POST(req: Request): Promise<NextResponse<ArchetypeResult |
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
+    return NextResponse.json(generateDemoRecommendation(body), { status: 200 });
   }
 
   try {
@@ -70,9 +71,13 @@ export async function POST(req: Request): Promise<NextResponse<ArchetypeResult |
     ]);
 
     const result = await runOrchestrator(body, [coachOut, scientistOut, historianOut], apiKey);
+    result.analysisMode = 'gemini';
     return NextResponse.json(result, { status: 200 });
   } catch (err) {
     console.error('[/api/analyze] upstream error:', err);
-    return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });
+    return NextResponse.json(
+      generateDemoRecommendation(body, 'Gemini synthesis was unavailable, so the product returned a deterministic local-data result.'),
+      { status: 200 },
+    );
   }
 }

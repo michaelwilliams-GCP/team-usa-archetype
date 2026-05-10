@@ -1,0 +1,932 @@
+{
+  "Alpine Skiing": {
+    "avgHeight": 173,
+    "avgWeight": 73,
+    "avgHeightCm": 173,
+    "avgWeightKg": 73,
+    "avgAge": 23,
+    "medalRate": 0.08,
+    "athleteCount": 552,
+    "goldenYear": {
+      "year": "2010",
+      "city": "Vancouver",
+      "medals": 8,
+      "athletes": 40,
+      "avgHeightCm": 175,
+      "avgWeightKg": 78
+    }
+  },
+  "Archery": {
+    "avgHeight": 176,
+    "avgWeight": 72,
+    "avgHeightCm": 176,
+    "avgWeightKg": 72,
+    "avgAge": 36,
+    "medalRate": 0.33,
+    "athleteCount": 175,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 28,
+      "athletes": 70,
+      "avgHeightCm": 170,
+      "avgWeightKg": null
+    }
+  },
+  "Art Competitions": {
+    "avgHeight": 179,
+    "avgWeight": 75,
+    "avgHeightCm": 179,
+    "avgWeightKg": 75,
+    "avgAge": 47,
+    "medalRate": 0.02,
+    "athleteCount": 562,
+    "goldenYear": {
+      "year": "1932",
+      "city": "Los Angeles",
+      "medals": 7,
+      "athletes": 404,
+      "avgHeightCm": 178,
+      "avgWeightKg": 74
+    }
+  },
+  "Athletics": {
+    "avgHeight": 179,
+    "avgWeight": 73,
+    "avgHeightCm": 179,
+    "avgWeightKg": 73,
+    "avgAge": 25,
+    "medalRate": 0.34,
+    "athleteCount": 3211,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 72,
+      "athletes": 158,
+      "avgHeightCm": 178,
+      "avgWeightKg": 74
+    }
+  },
+  "Badminton": {
+    "avgHeight": 171,
+    "avgWeight": 67,
+    "avgHeightCm": 171,
+    "avgWeightKg": 67,
+    "avgAge": 27,
+    "medalRate": 0,
+    "athleteCount": 33,
+    "goldenYear": null
+  },
+  "Baseball": {
+    "avgHeight": 186,
+    "avgWeight": 89,
+    "avgHeightCm": 186,
+    "avgWeightKg": 89,
+    "avgAge": 23,
+    "medalRate": 0.77,
+    "athleteCount": 88,
+    "goldenYear": {
+      "year": "2000",
+      "city": "Sydney",
+      "medals": 24,
+      "athletes": 24,
+      "avgHeightCm": 185,
+      "avgWeightKg": 87
+    }
+  },
+  "Basketball": {
+    "avgHeight": 193,
+    "avgWeight": 87,
+    "avgHeightCm": 193,
+    "avgWeightKg": 87,
+    "avgAge": 25,
+    "medalRate": 1,
+    "athleteCount": 341,
+    "goldenYear": {
+      "year": "1976",
+      "city": "Montreal",
+      "medals": 24,
+      "athletes": 24,
+      "avgHeightCm": 189,
+      "avgWeightKg": 82
+    }
+  },
+  "Beach Volleyball": {
+    "avgHeight": 187,
+    "avgWeight": 81,
+    "avgHeightCm": 187,
+    "avgWeightKg": 81,
+    "avgAge": 32,
+    "medalRate": 0.38,
+    "athleteCount": 52,
+    "goldenYear": {
+      "year": "1996",
+      "city": "Atlanta",
+      "medals": 4,
+      "athletes": 12,
+      "avgHeightCm": 181,
+      "avgWeightKg": 83
+    }
+  },
+  "Biathlon": {
+    "avgHeight": 175,
+    "avgWeight": 68,
+    "avgHeightCm": 175,
+    "avgWeightKg": 68,
+    "avgAge": 27,
+    "medalRate": 0,
+    "athleteCount": 246,
+    "goldenYear": null
+  },
+  "Bobsleigh": {
+    "avgHeight": 182,
+    "avgWeight": 91,
+    "avgHeightCm": 182,
+    "avgWeightKg": 91,
+    "avgAge": 30,
+    "medalRate": 0.28,
+    "athleteCount": 266,
+    "goldenYear": {
+      "year": "1932",
+      "city": "Lake Placid",
+      "medals": 12,
+      "athletes": 12,
+      "avgHeightCm": 176,
+      "avgWeightKg": null
+    }
+  },
+  "Boxing": {
+    "avgHeight": 175,
+    "avgWeight": 67,
+    "avgHeightCm": 175,
+    "avgWeightKg": 67,
+    "avgAge": 21,
+    "medalRate": 0.44,
+    "athleteCount": 255,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 18,
+      "athletes": 24,
+      "avgHeightCm": 174,
+      "avgWeightKg": 61
+    }
+  },
+  "Canoeing": {
+    "avgHeight": 179,
+    "avgWeight": 75,
+    "avgHeightCm": 179,
+    "avgWeightKg": 75,
+    "avgAge": 27,
+    "medalRate": 0.07,
+    "athleteCount": 311,
+    "goldenYear": {
+      "year": "1948",
+      "city": "London",
+      "medals": 5,
+      "athletes": 12,
+      "avgHeightCm": 188,
+      "avgWeightKg": 89
+    }
+  },
+  "Cross Country Skiing": {
+    "avgHeight": 174,
+    "avgWeight": 68,
+    "avgHeightCm": 174,
+    "avgWeightKg": 68,
+    "avgAge": 27,
+    "medalRate": 0,
+    "athleteCount": 538,
+    "goldenYear": {
+      "year": "1976",
+      "city": "Innsbruck",
+      "medals": 1,
+      "athletes": 28,
+      "avgHeightCm": 176,
+      "avgWeightKg": 70
+    }
+  },
+  "Curling": {
+    "avgHeight": 175,
+    "avgWeight": 77,
+    "avgHeightCm": 175,
+    "avgWeightKg": 77,
+    "avgAge": 32,
+    "medalRate": 0.09,
+    "athleteCount": 47,
+    "goldenYear": {
+      "year": "2006",
+      "city": "Torino",
+      "medals": 4,
+      "athletes": 9,
+      "avgHeightCm": 171,
+      "avgWeightKg": 70
+    }
+  },
+  "Cycling": {
+    "avgHeight": 177,
+    "avgWeight": 71,
+    "avgHeightCm": 177,
+    "avgWeightKg": 71,
+    "avgAge": 25,
+    "medalRate": 0.15,
+    "athleteCount": 523,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 21,
+      "athletes": 60,
+      "avgHeightCm": 176,
+      "avgWeightKg": null
+    }
+  },
+  "Diving": {
+    "avgHeight": 167,
+    "avgWeight": 62,
+    "avgHeightCm": 167,
+    "avgWeightKg": 62,
+    "avgAge": 22,
+    "medalRate": 0.5,
+    "athleteCount": 278,
+    "goldenYear": {
+      "year": "1932",
+      "city": "Los Angeles",
+      "medals": 12,
+      "athletes": 12,
+      "avgHeightCm": null,
+      "avgWeightKg": null
+    }
+  },
+  "Equestrianism": {
+    "avgHeight": 174,
+    "avgWeight": 65,
+    "avgHeightCm": 174,
+    "avgWeightKg": 65,
+    "avgAge": 35,
+    "medalRate": 0.29,
+    "athleteCount": 456,
+    "goldenYear": {
+      "year": "2004",
+      "city": "Athina",
+      "medals": 15,
+      "athletes": 26,
+      "avgHeightCm": 175,
+      "avgWeightKg": 67
+    }
+  },
+  "Fencing": {
+    "avgHeight": 179,
+    "avgWeight": 73,
+    "avgHeightCm": 179,
+    "avgWeightKg": 73,
+    "avgAge": 29,
+    "medalRate": 0.1,
+    "athleteCount": 690,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 13,
+      "athletes": 20,
+      "avgHeightCm": 182,
+      "avgWeightKg": null
+    }
+  },
+  "Figure Skating": {
+    "avgHeight": 167,
+    "avgWeight": 59,
+    "avgHeightCm": 167,
+    "avgWeightKg": 59,
+    "avgAge": 23,
+    "medalRate": 0.23,
+    "athleteCount": 293,
+    "goldenYear": {
+      "year": "2014",
+      "city": "Sochi",
+      "medals": 10,
+      "athletes": 23,
+      "avgHeightCm": 169,
+      "avgWeightKg": 61
+    }
+  },
+  "Football": {
+    "avgHeight": 174,
+    "avgWeight": 70,
+    "avgHeightCm": 174,
+    "avgWeightKg": 70,
+    "avgAge": 24,
+    "medalRate": 0.34,
+    "athleteCount": 301,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 23,
+      "athletes": 23,
+      "avgHeightCm": null,
+      "avgWeightKg": 60
+    }
+  },
+  "Freestyle Skiing": {
+    "avgHeight": 172,
+    "avgWeight": 70,
+    "avgHeightCm": 172,
+    "avgWeightKg": 70,
+    "avgAge": 25,
+    "medalRate": 0.2,
+    "athleteCount": 105,
+    "goldenYear": {
+      "year": "2014",
+      "city": "Sochi",
+      "medals": 7,
+      "athletes": 24,
+      "avgHeightCm": 173,
+      "avgWeightKg": 70
+    }
+  },
+  "Golf": {
+    "avgHeight": 177,
+    "avgWeight": 75,
+    "avgHeightCm": 177,
+    "avgWeightKg": 75,
+    "avgAge": 29,
+    "medalRate": 0.33,
+    "athleteCount": 116,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 33,
+      "athletes": 100,
+      "avgHeightCm": 175,
+      "avgWeightKg": null
+    }
+  },
+  "Gymnastics": {
+    "avgHeight": 163,
+    "avgWeight": 58,
+    "avgHeightCm": 163,
+    "avgWeightKg": 58,
+    "avgAge": 23,
+    "medalRate": 0.1,
+    "athleteCount": 2013,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 44,
+      "athletes": 416,
+      "avgHeightCm": 171,
+      "avgWeightKg": 69
+    }
+  },
+  "Handball": {
+    "avgHeight": 183,
+    "avgWeight": 79,
+    "avgHeightCm": 183,
+    "avgWeightKg": 79,
+    "avgAge": 26,
+    "medalRate": 0,
+    "athleteCount": 142,
+    "goldenYear": null
+  },
+  "Hockey": {
+    "avgHeight": 170,
+    "avgWeight": 66,
+    "avgHeightCm": 170,
+    "avgWeightKg": 66,
+    "avgAge": 27,
+    "medalRate": 0.16,
+    "athleteCount": 182,
+    "goldenYear": {
+      "year": "1984",
+      "city": "Los Angeles",
+      "medals": 16,
+      "athletes": 31,
+      "avgHeightCm": 173,
+      "avgWeightKg": 67
+    }
+  },
+  "Ice Hockey": {
+    "avgHeight": 179,
+    "avgWeight": 82,
+    "avgHeightCm": 179,
+    "avgWeightKg": 82,
+    "avgAge": 25,
+    "medalRate": 0.55,
+    "athleteCount": 498,
+    "goldenYear": {
+      "year": "2002",
+      "city": "Salt Lake City",
+      "medals": 43,
+      "athletes": 43,
+      "avgHeightCm": 178,
+      "avgWeightKg": 81
+    }
+  },
+  "Jeu De Paume": {
+    "avgHeight": 181,
+    "avgWeight": null,
+    "avgHeightCm": 181,
+    "avgWeightKg": null,
+    "avgAge": 31,
+    "medalRate": 0.5,
+    "athleteCount": 2,
+    "goldenYear": null
+  },
+  "Judo": {
+    "avgHeight": 175,
+    "avgWeight": 78,
+    "avgHeightCm": 175,
+    "avgWeightKg": 78,
+    "avgAge": 26,
+    "medalRate": 0.13,
+    "athleteCount": 105,
+    "goldenYear": {
+      "year": "1984",
+      "city": "Los Angeles",
+      "medals": 2,
+      "athletes": 8,
+      "avgHeightCm": 180,
+      "avgWeightKg": 85
+    }
+  },
+  "Lacrosse": {
+    "avgHeight": null,
+    "avgWeight": null,
+    "avgHeightCm": null,
+    "avgWeightKg": null,
+    "avgAge": 28,
+    "medalRate": 1,
+    "athleteCount": 12,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 12,
+      "athletes": 12,
+      "avgHeightCm": null,
+      "avgWeightKg": null
+    }
+  },
+  "Luge": {
+    "avgHeight": 178,
+    "avgWeight": 76,
+    "avgHeightCm": 178,
+    "avgWeightKg": 76,
+    "avgAge": 25,
+    "medalRate": 0.06,
+    "athleteCount": 142,
+    "goldenYear": {
+      "year": "1998",
+      "city": "Nagano",
+      "medals": 4,
+      "athletes": 10,
+      "avgHeightCm": 177,
+      "avgWeightKg": 78
+    }
+  },
+  "Modern Pentathlon": {
+    "avgHeight": 181,
+    "avgWeight": 72,
+    "avgHeightCm": 181,
+    "avgWeightKg": 72,
+    "avgAge": 27,
+    "medalRate": 0.17,
+    "athleteCount": 98,
+    "goldenYear": {
+      "year": "1960",
+      "city": "Roma",
+      "medals": 4,
+      "athletes": 6,
+      "avgHeightCm": 185,
+      "avgWeightKg": 79
+    }
+  },
+  "Nordic Combined": {
+    "avgHeight": 177,
+    "avgWeight": 67,
+    "avgHeightCm": 177,
+    "avgWeightKg": 67,
+    "avgAge": 25,
+    "medalRate": 0.05,
+    "athleteCount": 128,
+    "goldenYear": {
+      "year": "2010",
+      "city": "Vancouver",
+      "medals": 7,
+      "athletes": 12,
+      "avgHeightCm": 178,
+      "avgWeightKg": 66
+    }
+  },
+  "Polo": {
+    "avgHeight": 175,
+    "avgWeight": null,
+    "avgHeightCm": 175,
+    "avgWeightKg": null,
+    "avgAge": 33,
+    "medalRate": 1,
+    "athleteCount": 12,
+    "goldenYear": {
+      "year": "1900",
+      "city": "Paris",
+      "medals": 4,
+      "athletes": 4,
+      "avgHeightCm": 178,
+      "avgWeightKg": null
+    }
+  },
+  "Rhythmic Gymnastics": {
+    "avgHeight": 165,
+    "avgWeight": 50,
+    "avgHeightCm": 165,
+    "avgWeightKg": 50,
+    "avgAge": 18,
+    "medalRate": 0,
+    "athleteCount": 21,
+    "goldenYear": null
+  },
+  "Roque": {
+    "avgHeight": null,
+    "avgWeight": null,
+    "avgHeightCm": null,
+    "avgWeightKg": null,
+    "avgAge": 53,
+    "medalRate": 0.75,
+    "athleteCount": 4,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 3,
+      "athletes": 4,
+      "avgHeightCm": null,
+      "avgWeightKg": null
+    }
+  },
+  "Rowing": {
+    "avgHeight": 185,
+    "avgWeight": 80,
+    "avgHeightCm": 185,
+    "avgWeightKg": 80,
+    "avgAge": 25,
+    "medalRate": 0.45,
+    "athleteCount": 828,
+    "goldenYear": {
+      "year": "1984",
+      "city": "Los Angeles",
+      "medals": 38,
+      "athletes": 54,
+      "avgHeightCm": 183,
+      "avgWeightKg": 78
+    }
+  },
+  "Rugby": {
+    "avgHeight": 179,
+    "avgWeight": 76,
+    "avgHeightCm": 179,
+    "avgWeightKg": 76,
+    "avgAge": 24,
+    "medalRate": 1,
+    "athleteCount": 36,
+    "goldenYear": {
+      "year": "1924",
+      "city": "Paris",
+      "medals": 19,
+      "athletes": 19,
+      "avgHeightCm": 179,
+      "avgWeightKg": null
+    }
+  },
+  "Rugby Sevens": {
+    "avgHeight": 178,
+    "avgWeight": 83,
+    "avgHeightCm": 178,
+    "avgWeightKg": 83,
+    "avgAge": 27,
+    "medalRate": 0,
+    "athleteCount": 25,
+    "goldenYear": null
+  },
+  "Sailing": {
+    "avgHeight": 179,
+    "avgWeight": 78,
+    "avgHeightCm": 179,
+    "avgWeightKg": 78,
+    "avgAge": 31,
+    "medalRate": 0.47,
+    "athleteCount": 296,
+    "goldenYear": {
+      "year": "1932",
+      "city": "Los Angeles",
+      "medals": 19,
+      "athletes": 21,
+      "avgHeightCm": 167,
+      "avgWeightKg": null
+    }
+  },
+  "Shooting": {
+    "avgHeight": 176,
+    "avgWeight": 78,
+    "avgHeightCm": 176,
+    "avgWeightKg": 78,
+    "avgAge": 33,
+    "medalRate": 0.3,
+    "athleteCount": 645,
+    "goldenYear": {
+      "year": "1920",
+      "city": "Antwerpen",
+      "medals": 64,
+      "athletes": 106,
+      "avgHeightCm": 180,
+      "avgWeightKg": null
+    }
+  },
+  "Short Track Speed Skating": {
+    "avgHeight": 169,
+    "avgWeight": 64,
+    "avgHeightCm": 169,
+    "avgWeightKg": 64,
+    "avgAge": 24,
+    "medalRate": 0.31,
+    "athleteCount": 135,
+    "goldenYear": {
+      "year": "2010",
+      "city": "Vancouver",
+      "medals": 14,
+      "athletes": 27,
+      "avgHeightCm": 171,
+      "avgWeightKg": 63
+    }
+  },
+  "Skeleton": {
+    "avgHeight": 176,
+    "avgWeight": 74,
+    "avgHeightCm": 176,
+    "avgWeightKg": 74,
+    "avgAge": 30,
+    "medalRate": 0.32,
+    "athleteCount": 25,
+    "goldenYear": {
+      "year": "2002",
+      "city": "Salt Lake City",
+      "medals": 3,
+      "athletes": 5,
+      "avgHeightCm": 176,
+      "avgWeightKg": 71
+    }
+  },
+  "Ski Jumping": {
+    "avgHeight": 178,
+    "avgWeight": 68,
+    "avgHeightCm": 178,
+    "avgWeightKg": 68,
+    "avgAge": 23,
+    "medalRate": 0.01,
+    "athleteCount": 175,
+    "goldenYear": {
+      "year": "1924",
+      "city": "Chamonix",
+      "medals": 1,
+      "athletes": 3,
+      "avgHeightCm": 179,
+      "avgWeightKg": null
+    }
+  },
+  "Snowboarding": {
+    "avgHeight": 172,
+    "avgWeight": 71,
+    "avgHeightCm": 172,
+    "avgWeightKg": 71,
+    "avgAge": 25,
+    "medalRate": 0.28,
+    "athleteCount": 85,
+    "goldenYear": {
+      "year": "2006",
+      "city": "Torino",
+      "medals": 7,
+      "athletes": 16,
+      "avgHeightCm": 171,
+      "avgWeightKg": 71
+    }
+  },
+  "Softball": {
+    "avgHeight": 173,
+    "avgWeight": 76,
+    "avgHeightCm": 173,
+    "avgWeightKg": 76,
+    "avgAge": 26,
+    "medalRate": 1,
+    "athleteCount": 60,
+    "goldenYear": {
+      "year": "1996",
+      "city": "Atlanta",
+      "medals": 15,
+      "athletes": 15,
+      "avgHeightCm": 171,
+      "avgWeightKg": 73
+    }
+  },
+  "Speed Skating": {
+    "avgHeight": 173,
+    "avgWeight": 69,
+    "avgHeightCm": 173,
+    "avgWeightKg": 69,
+    "avgAge": 24,
+    "medalRate": 0.12,
+    "athleteCount": 570,
+    "goldenYear": {
+      "year": "1980",
+      "city": "Lake Placid",
+      "medals": 8,
+      "athletes": 27,
+      "avgHeightCm": 174,
+      "avgWeightKg": 66
+    }
+  },
+  "Swimming": {
+    "avgHeight": 181,
+    "avgWeight": 74,
+    "avgHeightCm": 181,
+    "avgWeightKg": 74,
+    "avgAge": 21,
+    "medalRate": 0.66,
+    "athleteCount": 1638,
+    "goldenYear": {
+      "year": "1968",
+      "city": "Mexico City",
+      "medals": 83,
+      "athletes": 107,
+      "avgHeightCm": 179,
+      "avgWeightKg": 71
+    }
+  },
+  "Synchronized Swimming": {
+    "avgHeight": 167,
+    "avgWeight": 57,
+    "avgHeightCm": 167,
+    "avgWeightKg": 57,
+    "avgAge": 24,
+    "medalRate": 0.48,
+    "athleteCount": 62,
+    "goldenYear": {
+      "year": "2004",
+      "city": "Athina",
+      "medals": 11,
+      "athletes": 11,
+      "avgHeightCm": 169,
+      "avgWeightKg": 58
+    }
+  },
+  "Table Tennis": {
+    "avgHeight": 171,
+    "avgWeight": 63,
+    "avgHeightCm": 171,
+    "avgWeightKg": 63,
+    "avgAge": 28,
+    "medalRate": 0,
+    "athleteCount": 69,
+    "goldenYear": null
+  },
+  "Taekwondo": {
+    "avgHeight": 179,
+    "avgWeight": 70,
+    "avgHeightCm": 179,
+    "avgWeightKg": 70,
+    "avgAge": 25,
+    "medalRate": 0.5,
+    "athleteCount": 18,
+    "goldenYear": {
+      "year": "2008",
+      "city": "Beijing",
+      "medals": 3,
+      "athletes": 4,
+      "avgHeightCm": 180,
+      "avgWeightKg": 65
+    }
+  },
+  "Tennis": {
+    "avgHeight": 182,
+    "avgWeight": 76,
+    "avgHeightCm": 182,
+    "avgWeightKg": 76,
+    "avgAge": 27,
+    "medalRate": 0.31,
+    "athleteCount": 200,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 12,
+      "athletes": 55,
+      "avgHeightCm": 183,
+      "avgWeightKg": 86
+    }
+  },
+  "Trampolining": {
+    "avgHeight": 164,
+    "avgWeight": 58,
+    "avgHeightCm": 164,
+    "avgWeightKg": 58,
+    "avgAge": 22,
+    "medalRate": 0,
+    "athleteCount": 8,
+    "goldenYear": null
+  },
+  "Triathlon": {
+    "avgHeight": 176,
+    "avgWeight": 64,
+    "avgHeightCm": 176,
+    "avgWeightKg": 64,
+    "avgAge": 30,
+    "medalRate": 0.07,
+    "athleteCount": 29,
+    "goldenYear": {
+      "year": "2004",
+      "city": "Athina",
+      "medals": 1,
+      "athletes": 6,
+      "avgHeightCm": 175,
+      "avgWeightKg": 66
+    }
+  },
+  "Tug-Of-War": {
+    "avgHeight": 185,
+    "avgWeight": 98,
+    "avgHeightCm": 185,
+    "avgWeightKg": 98,
+    "avgAge": 29,
+    "medalRate": 0.4,
+    "athleteCount": 35,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 14,
+      "athletes": 19,
+      "avgHeightCm": 188,
+      "avgWeightKg": 91
+    }
+  },
+  "Volleyball": {
+    "avgHeight": 188,
+    "avgWeight": 81,
+    "avgHeightCm": 188,
+    "avgWeightKg": 81,
+    "avgAge": 27,
+    "medalRate": 0.46,
+    "athleteCount": 263,
+    "goldenYear": {
+      "year": "1984",
+      "city": "Los Angeles",
+      "medals": 24,
+      "athletes": 24,
+      "avgHeightCm": 188,
+      "avgWeightKg": 78
+    }
+  },
+  "Water Polo": {
+    "avgHeight": 187,
+    "avgWeight": 87,
+    "avgHeightCm": 187,
+    "avgWeightKg": 87,
+    "avgAge": 26,
+    "medalRate": 0.47,
+    "athleteCount": 317,
+    "goldenYear": {
+      "year": "2008",
+      "city": "Beijing",
+      "medals": 26,
+      "athletes": 26,
+      "avgHeightCm": 186,
+      "avgWeightKg": 89
+    }
+  },
+  "Weightlifting": {
+    "avgHeight": 172,
+    "avgWeight": 91,
+    "avgHeightCm": 172,
+    "avgWeightKg": 91,
+    "avgAge": 26,
+    "medalRate": 0.27,
+    "athleteCount": 153,
+    "goldenYear": {
+      "year": "1948",
+      "city": "London",
+      "medals": 8,
+      "athletes": 12,
+      "avgHeightCm": 167,
+      "avgWeightKg": 73
+    }
+  },
+  "Wrestling": {
+    "avgHeight": 174,
+    "avgWeight": 77,
+    "avgHeightCm": 174,
+    "avgWeightKg": 77,
+    "avgAge": 26,
+    "medalRate": 0.33,
+    "athleteCount": 383,
+    "goldenYear": {
+      "year": "1904",
+      "city": "St. Louis",
+      "medals": 17,
+      "athletes": 40,
+      "avgHeightCm": 170,
+      "avgWeightKg": 54
+    }
+  }
+}

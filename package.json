@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "build:data": "node scripts/build-sport-stats.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "smoke": "node scripts/product-smoke.mjs",
+    "test": "npm run lint && npm run build && npm run smoke"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

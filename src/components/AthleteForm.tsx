@@ -30,6 +30,16 @@ const initialFormState: FormState = {
   power: 50,
 };
 
+const sampleFormState: FormState = {
+  feet: '5',
+  inches: '10',
+  weightLbs: '160',
+  age: '25',
+  gender: 'Other',
+  endurance: 62,
+  power: 58,
+};
+
 const inputClass =
   'h-12 w-full rounded-md border border-white/12 bg-white/[0.06] px-3 text-[15px] text-white outline-none transition placeholder:text-slate-500 focus:border-[#f6c756] focus:bg-white/[0.09] focus:ring-2 focus:ring-[#f6c756]/20';
 
@@ -125,6 +135,11 @@ export function AthleteForm({ data, loading, findClosestSports }: AthleteFormPro
     }));
   };
 
+  const useSampleProfile = () => {
+    setFormData(sampleFormState);
+    setResult(null);
+  };
+
   const isReady = Boolean(data) && !loading;
 
   return (
@@ -135,17 +150,26 @@ export function AthleteForm({ data, loading, findClosestSports }: AthleteFormPro
             <p className="text-sm font-semibold text-[#f6c756]">Athlete input deck</p>
             <h2 className="mt-1 text-3xl font-black text-white sm:text-4xl">Find your archetype</h2>
           </div>
-          <span
-            className={`w-fit rounded-md border px-3 py-2 text-sm font-semibold ${
-              loading
-                ? 'border-[#f6c756]/40 bg-[#f6c756]/10 text-[#f6c756]'
-                : data
-                  ? 'border-emerald-300/35 bg-emerald-400/10 text-emerald-200'
-                  : 'border-[#bf0d3e]/40 bg-[#bf0d3e]/12 text-red-200'
-            }`}
-          >
-            {statusText}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={useSampleProfile}
+              className="rounded-md border border-white/12 bg-white/[0.06] px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-[#f6c756]/50 hover:text-[#f6c756]"
+            >
+              Use sample profile
+            </button>
+            <span
+              className={`w-fit rounded-md border px-3 py-2 text-sm font-semibold ${
+                loading
+                  ? 'border-[#f6c756]/40 bg-[#f6c756]/10 text-[#f6c756]'
+                  : data
+                    ? 'border-emerald-300/35 bg-emerald-400/10 text-emerald-200'
+                    : 'border-[#bf0d3e]/40 bg-[#bf0d3e]/12 text-red-200'
+              }`}
+            >
+              {statusText}
+            </span>
+          </div>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
@@ -335,9 +359,19 @@ export function AthleteForm({ data, loading, findClosestSports }: AthleteFormPro
           ) : (
             <div className="space-y-5">
               <div className="rounded-md border border-[#f6c756]/25 bg-[#f6c756]/10 p-5">
-                <p className="text-sm font-semibold text-[#f6c756]">Overall archetype</p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-[#f6c756]">Overall archetype</p>
+                  <span className="rounded-md border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-black text-slate-100">
+                    {result.analysisMode === 'demo' ? 'Demo mode' : 'Gemini panel'}
+                  </span>
+                </div>
                 <h3 className="mt-1 text-3xl font-black text-white sm:text-4xl">{result.overallArchetype}</h3>
                 <p className="mt-3 text-lg text-slate-100">{result.tagline}</p>
+                {result.notice && (
+                  <p className="mt-4 rounded-md border border-[#8ad7ff]/25 bg-[#8ad7ff]/10 p-3 text-sm leading-6 text-[#d7f4ff]">
+                    {result.notice}
+                  </p>
+                )}
                 <p className="mt-4 border-t border-[#f6c756]/20 pt-4 text-sm leading-6 text-[#ffe7a6]">
                   {result.funFact}
                 </p>

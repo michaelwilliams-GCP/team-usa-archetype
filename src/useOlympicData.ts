@@ -77,6 +77,12 @@ function fetchCSV(filename: string): Promise<RawRow[]> {
   });
 }
 
+async function fetchSportStats(): Promise<SportStatMap> {
+  const res = await fetch('/data/team-usa-sport-stats.json');
+  if (!res.ok) throw new Error(`Sport summary failed to load (${res.status})`);
+  return (await res.json()) as SportStatMap;
+}
+
 function avg(arr: (string | undefined)[]): number | null {
   const clean = arr.map(Number).filter((n) => !Number.isNaN(n) && n > 0);
   if (!clean.length) return null;
@@ -214,8 +220,9 @@ export function useOlympicData(): OlympicDataHookResult {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCSV('athlete_events.csv')
-      .then((rows) => setSportStats(buildUSAStats(rows)))
+    fetchSportStats()
+      .catch(() => fetchCSV('athlete_events.csv').then((rows) => buildUSAStats(rows)))
+      .then((stats) => setSportStats(stats))
       .catch((err: Error) => {
         console.warn('CSV load failed:', err.message);
         setError(err.message);

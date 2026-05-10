@@ -18,6 +18,7 @@ export type SportStats = {
 
 export type ClosestSport = {
   sport: string;
+  score?: number;
   stats: SportStats;
 };
 
@@ -50,6 +51,8 @@ export type ArchetypeResult = {
   tagline: string;
   funFact: string;
   archetypes: Archetype[];
+  analysisMode?: 'gemini' | 'demo';
+  notice?: string;
 };
 
 export type PersonaOutput = {
