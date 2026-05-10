@@ -1,12 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #07101f;
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #050505;
   --foreground: #f8fafc;
+  --panel: #101010;
+  --panel-strong: #171717;
+  --panel-soft: #1f1f1f;
+  --field-bg: #141414;
+  --field-focus: #1b1b1b;
+  --chart-bg: #050505;
+  --border: #303030;
+  --border-strong: #424242;
+  --muted: #c9c9c9;
+  --faint: #8d8d8d;
+  --label: #f2f2f2;
   --usa-red: #bf0d3e;
-  --usa-blue: #002868;
+  --usa-blue: #111111;
   --signal: #f6c756;
-  --ice: #8ad7ff;
+  --accent-solid: #f6c756;
+  --accent-text: #f6c756;
+  --accent-soft: #322711;
+  --accent-ring: rgba(246, 199, 86, 0.26);
+  --accent-contrast: #050505;
+  --ice: #58c8f6;
+  --info-text: #8ad7ff;
+  --info-soft: #0c2833;
+  --success-text: #9ef2c4;
+  --success-soft: #092617;
+  --danger-text: #ffd5df;
+  --danger-soft: #35101b;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --background: #f6f2e8;
+  --foreground: #161616;
+  --panel: #ffffff;
+  --panel-strong: #f0eadf;
+  --panel-soft: #e8e1d3;
+  --field-bg: #fffdf8;
+  --field-focus: #ffffff;
+  --chart-bg: #fffdf8;
+  --border: #d6cdbb;
+  --border-strong: #b8ad99;
+  --muted: #4d4d4d;
+  --faint: #747474;
+  --label: #242424;
+  --usa-red: #bf0d3e;
+  --usa-blue: #161616;
+  --signal: #f6c756;
+  --accent-solid: #f6c756;
+  --accent-text: #805500;
+  --accent-soft: #fff1bf;
+  --accent-ring: rgba(128, 85, 0, 0.22);
+  --accent-contrast: #111111;
+  --ice: #00739c;
+  --info-text: #006d95;
+  --info-soft: #dff5fd;
+  --success-text: #047857;
+  --success-soft: #dff7e9;
+  --danger-text: #a30b35;
+  --danger-soft: #ffe6ed;
+  --shadow: 0 24px 70px rgba(49, 41, 25, 0.14);
 }
 
 @theme inline {
@@ -53,7 +111,7 @@ select {
 
 ::selection {
   background: var(--signal);
-  color: #07101f;
+  color: var(--accent-contrast);
 }
 
 @keyframes scan {
@@ -81,22 +139,12 @@ select {
 }
 
 .stadium-grid {
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(115deg, rgba(191, 13, 62, 0.3) 0%, transparent 28%),
-    linear-gradient(245deg, rgba(0, 40, 104, 0.72) 0%, transparent 46%),
-    #07101f;
-  background-size:
-    72px 72px,
-    72px 72px,
-    100% 100%,
-    100% 100%,
-    100% 100%;
+  background: var(--background);
 }
 
 .field-stripe {
-  background: linear-gradient(90deg, var(--usa-red) 0 33.333%, #ffffff 33.333% 66.666%, var(--usa-blue) 66.666% 100%);
+  background: var(--usa-red);
+  border-bottom: 1px solid var(--accent-solid);
 }
 
 .range-field {
@@ -105,7 +153,7 @@ select {
   cursor: pointer;
   appearance: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--usa-red), var(--signal), var(--ice));
+  background: var(--accent-solid);
   outline: none;
 }
 
@@ -113,19 +161,19 @@ select {
   width: 1.25rem;
   height: 1.25rem;
   appearance: none;
-  border: 3px solid #07101f;
+  border: 3px solid var(--background);
   border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(246, 199, 86, 0.45);
+  background: var(--foreground);
+  box-shadow: 0 0 0 2px var(--accent-ring);
 }
 
 .range-field::-moz-range-thumb {
   width: 1.25rem;
   height: 1.25rem;
-  border: 3px solid #07101f;
+  border: 3px solid var(--background);
   border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(246, 199, 86, 0.45);
+  background: var(--foreground);
+  box-shadow: 0 0 0 2px var(--accent-ring);
 }
 
 .content-visibility-auto {

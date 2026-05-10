@@ -45,7 +45,7 @@ function hasBodyMetrics(entry: [string, SportStats]): entry is [string, Complete
   return stats.avgHeight != null && stats.avgWeight != null && stats.athleteCount > 10;
 }
 
-export function DataVisualization({ data }: { data: SportStatMap | null }) {
+export function DataVisualization({ data, theme = 'dark' }: { data: SportStatMap | null; theme?: 'dark' | 'light' }) {
   const prepared = useMemo(() => {
     if (!data) return null;
 
@@ -80,13 +80,38 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
 
   if (!data || !prepared) return null;
 
+  const chartColors =
+    theme === 'light'
+      ? {
+          point: '#bf0d3e',
+          pointBorder: '#161616',
+          bar: '#bf0d3e',
+          tick: '#4d4d4d',
+          title: '#242424',
+          grid: '#d6cdbb',
+          tooltipBg: '#ffffff',
+          tooltipText: '#161616',
+          tooltipBorder: '#805500',
+        }
+      : {
+          point: '#f6c756',
+          pointBorder: '#f8fafc',
+          bar: '#bf0d3e',
+          tick: '#c9c9c9',
+          title: '#f2f2f2',
+          grid: '#303030',
+          tooltipBg: '#101010',
+          tooltipText: '#f8fafc',
+          tooltipBorder: '#f6c756',
+        };
+
   const scatterData: ChartData<'scatter', ScatterPoint[]> = {
     datasets: [
       {
         label: 'Team USA sport profile',
         data: prepared.scatterPoints,
-        backgroundColor: 'rgba(246, 199, 86, 0.74)',
-        borderColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: chartColors.point,
+        borderColor: chartColors.pointBorder,
         borderWidth: 1,
         pointRadius: 5,
         pointHoverRadius: 8,
@@ -102,8 +127,10 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(5, 10, 20, 0.94)',
-        borderColor: 'rgba(246, 199, 86, 0.45)',
+        backgroundColor: chartColors.tooltipBg,
+        bodyColor: chartColors.tooltipText,
+        titleColor: chartColors.tooltipText,
+        borderColor: chartColors.tooltipBorder,
         borderWidth: 1,
         callbacks: {
           label: (context: TooltipItem<'scatter'>) => {
@@ -124,19 +151,19 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
         title: {
           display: true,
           text: 'Average height (cm)',
-          color: '#dbeafe',
+          color: chartColors.title,
         },
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(148, 163, 184, 0.12)' },
+        ticks: { color: chartColors.tick },
+        grid: { color: chartColors.grid },
       },
       y: {
         title: {
           display: true,
           text: 'Average weight (kg)',
-          color: '#dbeafe',
+          color: chartColors.title,
         },
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(148, 163, 184, 0.12)' },
+        ticks: { color: chartColors.tick },
+        grid: { color: chartColors.grid },
       },
     },
   };
@@ -147,8 +174,8 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
       {
         label: 'Medal rate',
         data: prepared.topSports.map(([, stats]) => Math.round(stats.medalRate * 100)),
-        backgroundColor: 'rgba(191, 13, 62, 0.72)',
-        borderColor: 'rgba(255, 255, 255, 0.82)',
+        backgroundColor: chartColors.bar,
+        borderColor: chartColors.pointBorder,
         borderWidth: 1,
         borderRadius: 5,
       },
@@ -163,8 +190,10 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(5, 10, 20, 0.94)',
-        borderColor: 'rgba(246, 199, 86, 0.45)',
+        backgroundColor: chartColors.tooltipBg,
+        bodyColor: chartColors.tooltipText,
+        titleColor: chartColors.tooltipText,
+        borderColor: chartColors.tooltipBorder,
         borderWidth: 1,
         callbacks: {
           label: (context: TooltipItem<'bar'>) => `${context.parsed.y}% medal rate`,
@@ -174,17 +203,17 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(148, 163, 184, 0.12)' },
+        ticks: { color: chartColors.tick },
+        grid: { color: chartColors.grid },
         title: {
           display: true,
           text: 'Medal rate (%)',
-          color: '#dbeafe',
+          color: chartColors.title,
         },
       },
       x: {
         ticks: {
-          color: '#cbd5e1',
+          color: chartColors.tick,
           maxRotation: 45,
           minRotation: 0,
         },
@@ -195,63 +224,63 @@ export function DataVisualization({ data }: { data: SportStatMap | null }) {
 
   return (
     <section className="content-visibility-auto mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-8">
-      <div className="mb-6 flex flex-col gap-4 border-y border-white/10 py-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="mb-6 flex flex-col gap-4 border-y border-[color:var(--border)] py-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-semibold text-[#f6c756]">Historical data board</p>
-          <h2 className="mt-1 text-3xl font-black text-white sm:text-5xl">Team USA athlete profiles</h2>
+          <p className="text-sm font-semibold text-[var(--accent-text)]">Historical data board</p>
+          <h2 className="mt-1 text-3xl font-black text-[var(--foreground)] sm:text-5xl">Team USA athlete profiles</h2>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[420px]">
-          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
-            <div className="text-xl font-black text-white">{Object.keys(data).length}</div>
-            <div className="text-xs font-semibold text-slate-400">Sports</div>
+          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+            <div className="text-xl font-black text-[var(--foreground)]">{Object.keys(data).length}</div>
+            <div className="text-xs font-semibold text-[var(--faint)]">Sports</div>
           </div>
-          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
-            <div className="text-xl font-black text-white">{prepared.totalAthletes.toLocaleString()}</div>
-            <div className="text-xs font-semibold text-slate-400">Entries</div>
+          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+            <div className="text-xl font-black text-[var(--foreground)]">{prepared.totalAthletes.toLocaleString()}</div>
+            <div className="text-xs font-semibold text-[var(--faint)]">Entries</div>
           </div>
-          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
-            <div className="text-xl font-black text-white">{prepared.averageMedalRate}%</div>
-            <div className="text-xs font-semibold text-slate-400">Avg rate</div>
+          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+            <div className="text-xl font-black text-[var(--foreground)]">{prepared.averageMedalRate}%</div>
+            <div className="text-xs font-semibold text-[var(--faint)]">Avg rate</div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="rounded-lg border border-white/12 bg-[#0a1424]/90 p-4 shadow-xl shadow-black/25">
+        <div className="rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-4 shadow-[var(--shadow)]">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h3 className="text-2xl font-black text-white">Height and weight map</h3>
-              <p className="text-sm text-slate-400">Each point represents a sport average across Team USA history.</p>
+              <h3 className="text-2xl font-black text-[var(--foreground)]">Height and weight map</h3>
+              <p className="text-sm text-[var(--faint)]">Each point represents a sport average across Team USA history.</p>
             </div>
-            <span className="rounded-md bg-[#f6c756]/12 px-3 py-2 text-sm font-black text-[#f6c756]">
+            <span className="rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm font-black text-[var(--accent-text)]">
               {prepared.scatterPoints.length} plotted
             </span>
           </div>
-          <div className="h-[420px] rounded-md bg-[#07101f] p-3">
+          <div className="h-[420px] rounded-md bg-[var(--chart-bg)] p-3">
             <Scatter data={scatterData} options={scatterOptions} />
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/12 bg-[#0a1424]/90 p-4 shadow-xl shadow-black/25">
-          <h3 className="text-2xl font-black text-white">Medal rate leaders</h3>
-          <p className="mt-1 text-sm text-slate-400">Top sports with enough historical entries for comparison.</p>
-          <div className="mt-4 h-[420px] rounded-md bg-[#07101f] p-3">
+        <div className="rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-4 shadow-[var(--shadow)]">
+          <h3 className="text-2xl font-black text-[var(--foreground)]">Medal rate leaders</h3>
+          <p className="mt-1 text-sm text-[var(--faint)]">Top sports with enough historical entries for comparison.</p>
+          <div className="mt-4 h-[420px] rounded-md bg-[var(--chart-bg)] p-3">
             <Bar data={barData} options={barOptions} />
           </div>
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.04] p-4">
+      <div className="mt-5 rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#8ad7ff]">Looker Studio companion board</p>
-            <h3 className="mt-1 text-2xl font-black text-white">Peak performance dashboard</h3>
+            <p className="text-sm font-semibold text-[var(--info-text)]">Looker Studio companion board</p>
+            <h3 className="mt-1 text-2xl font-black text-[var(--foreground)]">Peak performance dashboard</h3>
           </div>
-          <p className="max-w-2xl text-sm leading-6 text-slate-300">
+          <p className="max-w-2xl text-sm leading-6 text-[var(--muted)]">
             The embedded report keeps the broader athlete trend story available without slowing down the profile workflow.
           </p>
         </div>
-        <div className="mt-4 overflow-hidden rounded-md border border-white/10 bg-[#07101f]">
+        <div className="mt-4 overflow-hidden rounded-md border border-[color:var(--border)] bg-[var(--chart-bg)]">
           <iframe
             title="Team USA Looker Studio dashboard"
             src="https://datastudio.google.com/embed/reporting/9358d7e9-222a-4cec-b861-11cd2b8d02de/page/0QjxF"

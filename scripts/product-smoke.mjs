@@ -171,6 +171,29 @@ async function runBrowserSmoke(baseUrl, width, height, outputName) {
       await page.send('Page.navigate', { url: baseUrl });
       await new Promise((resolve) => setTimeout(resolve, 2500));
 
+      const themeToggle = await page.send('Runtime.evaluate', {
+        expression: `(() => {
+          if (document.documentElement.dataset.theme !== 'dark') {
+            throw new Error('Default theme is not dark');
+          }
+          const toggle = document.querySelector('button[aria-pressed]');
+          if (!toggle) throw new Error('Missing theme toggle');
+          toggle.click();
+          return true;
+        })()`,
+        returnByValue: true,
+      });
+      if (!themeToggle.result.value) throw new Error('Theme toggle click failed');
+
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        const lightReady = await page.send('Runtime.evaluate', {
+          expression: `document.documentElement.dataset.theme === 'light'`,
+          returnByValue: true,
+        });
+        if (lightReady.result.value) break;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
       const evalResult = await page.send('Runtime.evaluate', {
         expression: `(() => {
           const sampleButton = [...document.querySelectorAll('button')].find((button) => button.textContent.includes('Use sample profile'));
