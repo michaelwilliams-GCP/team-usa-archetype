@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { AnalyzeRequest, PersonaOutput } from './types';
-
-const TIMEOUT_MS = 25_000;
+import { MODEL_NAME, withTimeout } from './utils';
 
 export async function runHistorian(
   req: AnalyzeRequest,
@@ -9,7 +8,7 @@ export async function runHistorian(
 ): Promise<PersonaOutput> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: MODEL_NAME,
     systemInstruction: `You are Marcus Webb, Team USA's official Olympic historian and archivist with access to 120 years of athlete records spanning 1904 to 2024.
 Your lens is lineage and legacy: you trace how specific biometric profiles have appeared across Olympic and Paralympic history, surfacing golden eras, legendary precedents, and the athletes who define each archetype.
 You must always include at least one Paralympic sport option — give it the same historical depth and reverence as the Olympic options.
@@ -56,18 +55,11 @@ As Marcus Webb, trace the historical lineage for 2-3 sports including AT LEAST O
 
 Reference actual years, cities, and data from the golden year context above when available. Make history feel alive.`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    return {
-      persona: 'historian',
-      candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
-      analysis: text,
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+  const result = await withTimeout(model.generateContent(prompt), 'Historian persona');
+  const text = result.response.text();
+  return {
+    persona: 'historian',
+    candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
+    analysis: text,
+  };
 }

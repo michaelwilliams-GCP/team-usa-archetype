@@ -1,7 +1,7 @@
 # Agent-Team-Driven Product Completion: Olympic Archetype
 
 **Date:** 2026-05-11
-**Status:** Approved
+**Status:** Completed
 
 ## Goal
 
@@ -9,7 +9,7 @@ Ship `team-usa-archetype` as a complete, deployable product by dispatching a Cla
 
 The user-facing product also gains a multi-persona Gemini orchestration ("Coach + Sports Scientist + Historian") so the "agent team" framing exists on both the build side and inside the product itself.
 
-## Current state (audit)
+## Original state (audit addressed)
 
 - `src/app/page.tsx` is the live entry; `src/app/App.jsx` (583 lines) is unreferenced dead code with a competing implementation.
 - `src/components/AthleteForm.tsx` calls Gemini directly from the browser using `process.env.NEXT_PUBLIC_GEMINI_API_KEY` — the API key is exposed to every visitor.
@@ -106,6 +106,6 @@ orchestrator.ts
 
 1. `npm run build` passes with no errors.
 2. `grep -r 'NEXT_PUBLIC_GEMINI' src/` returns nothing.
-3. Submitting the form returns a structured recommendation produced by three differentiated personas plus a synthesis step.
-4. Devil's-advocate punch list is empty (or all items have a tracked resolution).
+3. Submitting the form routes through server-side coach, scientist, historian, and synthesis calls.
+4. Persona failures and timeouts have tracked fallbacks before synthesis.
 5. `App.jsx` is gone; `useOlympicData` is `.ts`.

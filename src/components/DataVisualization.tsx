@@ -1,187 +1,259 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
-  Title,
-  Tooltip,
+  CategoryScale,
+  Chart as ChartJS,
   Legend,
-  ScatterController,
-  PointElement,
+  LinearScale,
   LineElement,
+  PointElement,
+  ScatterController,
+  Tooltip,
 } from 'chart.js';
+import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { Bar, Scatter } from 'react-chartjs-2';
+import type { SportStatMap, SportStats } from '@/useOlympicData';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  Title,
   Tooltip,
   Legend,
   ScatterController,
   PointElement,
-  LineElement
+  LineElement,
 );
 
-interface SportStats {
-  avgHeight?: number;
-  avgWeight?: number;
-  athleteCount: number;
+type CompleteMetricStats = SportStats & {
+  avgHeight: number;
+  avgWeight: number;
+};
+
+type ScatterPoint = {
+  x: number;
+  y: number;
+  sport: string;
   medalRate: number;
-  avgAge?: number;
+  athleteCount: number;
+};
+
+function hasBodyMetrics(entry: [string, SportStats]): entry is [string, CompleteMetricStats] {
+  const [, stats] = entry;
+  return stats.avgHeight != null && stats.avgWeight != null && stats.athleteCount > 10;
 }
 
-interface SportsData {
-  [sport: string]: SportStats;
-}
+export function DataVisualization({ data }: { data: SportStatMap | null }) {
+  const prepared = useMemo(() => {
+    if (!data) return null;
 
-export function DataVisualization({ data }: { data: SportsData | null }) {
-  if (!data) return null;
+    const entries = Object.entries(data);
+    const scatterPoints: ScatterPoint[] = entries.filter(hasBodyMetrics).map(([sport, stats]) => ({
+      x: stats.avgHeight,
+      y: stats.avgWeight,
+      sport,
+      medalRate: stats.medalRate,
+      athleteCount: stats.athleteCount,
+    }));
 
-  // Prepare data for height vs weight scatter plot
-  const scatterData = {
-    datasets: [{
-      label: 'Team USA Athletes by Sport',
-      data: Object.entries(data)
-        .filter(([, stats]) => stats.avgHeight && stats.avgWeight && stats.athleteCount > 10)
-        .map(([sport, stats]) => ({
-          x: stats.avgHeight,
-          y: stats.avgWeight,
-          sport,
-          medalRate: stats.medalRate,
-          athleteCount: stats.athleteCount
-        })),
-      backgroundColor: 'rgba(59, 130, 246, 0.6)',
-      borderColor: 'rgba(59, 130, 246, 1)',
-      borderWidth: 1,
-    }]
+    const topSports = entries
+      .filter(([, stats]) => stats.athleteCount > 5)
+      .sort((a, b) => b[1].medalRate - a[1].medalRate)
+      .slice(0, 12);
+
+    const totalAthletes = entries.reduce((sum, [, stats]) => sum + stats.athleteCount, 0);
+    const medalRates = entries.filter(([, stats]) => stats.athleteCount > 20).map(([, stats]) => stats.medalRate);
+    const averageMedalRate =
+      medalRates.length > 0
+        ? Math.round((medalRates.reduce((sum, rate) => sum + rate, 0) / medalRates.length) * 100)
+        : 0;
+
+    return {
+      scatterPoints,
+      topSports,
+      totalAthletes,
+      averageMedalRate,
+    };
+  }, [data]);
+
+  if (!data || !prepared) return null;
+
+  const scatterData: ChartData<'scatter', ScatterPoint[]> = {
+    datasets: [
+      {
+        label: 'Team USA sport profile',
+        data: prepared.scatterPoints,
+        backgroundColor: 'rgba(246, 199, 86, 0.74)',
+        borderColor: 'rgba(255, 255, 255, 0.9)',
+        borderWidth: 1,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+      },
+    ],
   };
 
-  const scatterOptions = {
+  const scatterOptions: ChartOptions<'scatter'> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
-        labels: {
-          color: '#e2e8f0',
-          font: { size: 12, weight: '600' }
-        }
-      },
-      title: {
         display: false,
       },
       tooltip: {
+        backgroundColor: 'rgba(5, 10, 20, 0.94)',
+        borderColor: 'rgba(246, 199, 86, 0.45)',
+        borderWidth: 1,
         callbacks: {
-          label: (context: any) => {
-            const point = context.raw;
+          label: (context: TooltipItem<'scatter'>) => {
+            const point = context.raw as ScatterPoint;
             return [
-              `Sport: ${point.sport}`,
+              `${point.sport}`,
               `Height: ${point.x.toFixed(1)} cm`,
               `Weight: ${point.y.toFixed(1)} kg`,
-              `Medal Rate: ${(point.medalRate * 100).toFixed(1)}%`,
-              `Athletes: ${point.athleteCount}`
+              `Medal rate: ${(point.medalRate * 100).toFixed(1)}%`,
+              `Athletes: ${point.athleteCount.toLocaleString()}`,
             ];
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: 'Average Height (cm)',
-          color: '#e2e8f0'
+          text: 'Average height (cm)',
+          color: '#dbeafe',
         },
         ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' }
+        grid: { color: 'rgba(148, 163, 184, 0.12)' },
       },
       y: {
         title: {
           display: true,
-          text: 'Average Weight (kg)',
-          color: '#e2e8f0'
+          text: 'Average weight (kg)',
+          color: '#dbeafe',
         },
         ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' }
-      }
-    }
+        grid: { color: 'rgba(148, 163, 184, 0.12)' },
+      },
+    },
   };
 
-  // Prepare data for medal rate bar chart
-  const topSports = Object.entries(data)
-    .filter(([, stats]) => stats.athleteCount > 5)
-    .sort((a, b) => b[1].medalRate - a[1].medalRate)
-    .slice(0, 15);
-
-  const barData = {
-    labels: topSports.map(([sport]) => sport),
-    datasets: [{
-      label: 'Medal Rate (%)',
-      data: topSports.map(([, stats]) => stats.medalRate * 100),
-      backgroundColor: 'rgba(34, 197, 94, 0.7)',
-      borderColor: 'rgba(34, 197, 94, 1)',
-      borderWidth: 2,
-      borderRadius: 6,
-    }]
+  const barData: ChartData<'bar', number[], string> = {
+    labels: prepared.topSports.map(([sport]) => sport),
+    datasets: [
+      {
+        label: 'Medal rate',
+        data: prepared.topSports.map(([, stats]) => Math.round(stats.medalRate * 100)),
+        backgroundColor: 'rgba(191, 13, 62, 0.72)',
+        borderColor: 'rgba(255, 255, 255, 0.82)',
+        borderWidth: 1,
+        borderRadius: 5,
+      },
+    ],
   };
 
-  const barOptions = {
+  const barOptions: ChartOptions<'bar'> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
-        labels: {
-          color: '#e2e8f0',
-          font: { size: 12, weight: '600' }
-        }
-      },
-      title: {
         display: false,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(5, 10, 20, 0.94)',
+        borderColor: 'rgba(246, 199, 86, 0.45)',
+        borderWidth: 1,
+        callbacks: {
+          label: (context: TooltipItem<'bar'>) => `${context.parsed.y}% medal rate`,
+        },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' },
+        grid: { color: 'rgba(148, 163, 184, 0.12)' },
         title: {
           display: true,
-          text: 'Medal Rate (%)',
-          color: '#e2e8f0'
-        }
+          text: 'Medal rate (%)',
+          color: '#dbeafe',
+        },
       },
       x: {
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' }
-      }
-    }
+        ticks: {
+          color: '#cbd5e1',
+          maxRotation: 45,
+          minRotation: 0,
+        },
+        grid: { display: false },
+      },
+    },
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 border-2 border-slate-700 animate-fade-in-delay-2">
-      <h2 className="text-4xl font-black mb-8 text-center bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-        📈 EXPLORE TEAM USA ATHLETE PROFILES
-      </h2>
+    <section className="content-visibility-auto mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-8">
+      <div className="mb-6 flex flex-col gap-4 border-y border-white/10 py-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-[#f6c756]">Historical data board</p>
+          <h2 className="mt-1 text-3xl font-black text-white sm:text-5xl">Team USA athlete profiles</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[420px]">
+          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
+            <div className="text-xl font-black text-white">{Object.keys(data).length}</div>
+            <div className="text-xs font-semibold text-slate-400">Sports</div>
+          </div>
+          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
+            <div className="text-xl font-black text-white">{prepared.totalAthletes.toLocaleString()}</div>
+            <div className="text-xs font-semibold text-slate-400">Entries</div>
+          </div>
+          <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
+            <div className="text-xl font-black text-white">{prepared.averageMedalRate}%</div>
+            <div className="text-xs font-semibold text-slate-400">Avg rate</div>
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-4 rounded-3xl border border-blue-200/80 bg-blue-50/90 p-5 shadow-lg dark:border-blue-700/60 dark:bg-slate-950 dark:text-slate-100 mb-6">
-        <div className="mb-4">
-          <p className="text-sm uppercase tracking-[0.24em] text-blue-700 dark:text-blue-300 font-semibold">
-            Google Looker Studio • live dashboard
-          </p>
-          <h3 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">
-            Find your sport and Peak Performance
-          </h3>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            See your Team USA athlete trends in a clean Looker Studio dashboard that keeps the story focused, the metrics clear, and the next move obvious.
-          </p>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="rounded-lg border border-white/12 bg-[#0a1424]/90 p-4 shadow-xl shadow-black/25">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="text-2xl font-black text-white">Height and weight map</h3>
+              <p className="text-sm text-slate-400">Each point represents a sport average across Team USA history.</p>
+            </div>
+            <span className="rounded-md bg-[#f6c756]/12 px-3 py-2 text-sm font-black text-[#f6c756]">
+              {prepared.scatterPoints.length} plotted
+            </span>
+          </div>
+          <div className="h-[420px] rounded-md bg-[#07101f] p-3">
+            <Scatter data={scatterData} options={scatterOptions} />
+          </div>
         </div>
 
-        <div className="mb-4 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="rounded-lg border border-white/12 bg-[#0a1424]/90 p-4 shadow-xl shadow-black/25">
+          <h3 className="text-2xl font-black text-white">Medal rate leaders</h3>
+          <p className="mt-1 text-sm text-slate-400">Top sports with enough historical entries for comparison.</p>
+          <div className="mt-4 h-[420px] rounded-md bg-[#07101f] p-3">
+            <Bar data={barData} options={barOptions} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.04] p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#8ad7ff]">Looker Studio companion board</p>
+            <h3 className="mt-1 text-2xl font-black text-white">Peak performance dashboard</h3>
+          </div>
+          <p className="max-w-2xl text-sm leading-6 text-slate-300">
+            The embedded report keeps the broader athlete trend story available without slowing down the profile workflow.
+          </p>
+        </div>
+        <div className="mt-4 overflow-hidden rounded-md border border-white/10 bg-[#07101f]">
           <iframe
+            title="Team USA Looker Studio dashboard"
             src="https://datastudio.google.com/embed/reporting/9358d7e9-222a-4cec-b861-11cd2b8d02de/page/0QjxF"
             width="100%"
             height="420"
@@ -190,46 +262,7 @@ export function DataVisualization({ data }: { data: SportsData | null }) {
             sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
           />
         </div>
-
-        <p className="text-sm text-slate-700 dark:text-slate-300">
-          This embedded Looker Studio report is the fastest path from data to insight: clear metrics, quick comparison, and a polished Google brand experience.
-        </p>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="animate-fade-in-delay">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-blue-500 shadow-2xl hover:shadow-blue-500/50 transition-all">
-            <h3 className="text-xl font-black text-blue-300 mb-4 text-center uppercase tracking-wide">
-              📊 HEIGHT VS WEIGHT
-            </h3>
-            <div className="h-96 bg-slate-700/50 rounded-lg p-3">
-              <Scatter data={scatterData} options={scatterOptions} />
-            </div>
-          </div>
-        </div>
-
-        <div className="animate-fade-in-delay-2">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-emerald-500 shadow-2xl hover:shadow-emerald-500/50 transition-all">
-            <h3 className="text-xl font-black text-emerald-300 mb-4 text-center uppercase tracking-wide">
-              🏆 MEDAL RATE PERFORMANCE
-            </h3>
-            <div className="h-96 bg-slate-700/50 rounded-lg p-3">
-              <Bar data={barData} options={barOptions} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        <p>
-          <strong>Data Source:</strong> 120+ years of Olympic athlete data, filtered to Team USA athletes.
-          Showing sports with 10+ athletes for height/weight analysis, 5+ athletes for medal rates.
-        </p>
-        <p className="mt-2">
-          <strong>Insights:</strong> Hover over data points to see detailed statistics for each sport.
-          This visualization helps understand the physical characteristics that define different Olympic sports.
-        </p>
-      </div>
-    </div>
+    </section>
   );
 }

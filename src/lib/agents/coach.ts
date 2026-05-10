@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { AnalyzeRequest, PersonaOutput } from './types';
-
-const TIMEOUT_MS = 25_000;
+import { MODEL_NAME, withTimeout } from './utils';
 
 export async function runCoach(
   req: AnalyzeRequest,
@@ -9,7 +8,7 @@ export async function runCoach(
 ): Promise<PersonaOutput> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: MODEL_NAME,
     systemInstruction: `You are Coach Rivera, a decorated Team USA head coach with 30 years of elite athlete development experience.
 Your lens is motivational and training-load: you assess where a body WANTS to go based on its biometric profile — what it will love, thrive in emotionally, and sustain physically across a multi-year training arc.
 You think about athlete psychology, intrinsic motivation, sport culture fit, and the joy of competition.
@@ -45,18 +44,11 @@ As Coach Rivera, identify 2-3 Team USA sports where this athlete profile would t
 
 Be direct, passionate, and specific. Reference the actual biometrics with US measurements throughout.`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    return {
-      persona: 'coach',
-      candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
-      analysis: text,
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+  const result = await withTimeout(model.generateContent(prompt), 'Coach persona');
+  const text = result.response.text();
+  return {
+    persona: 'coach',
+    candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
+    analysis: text,
+  };
 }

@@ -1,8 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import type { Schema } from '@google/generative-ai';
 import type { AnalyzeRequest, ArchetypeResult, PersonaOutput } from './types';
-
-const TIMEOUT_MS = 25_000;
+import { MODEL_NAME, withTimeout } from './utils';
 
 const RESPONSE_SCHEMA: Schema = {
   type: SchemaType.OBJECT,
@@ -56,7 +55,7 @@ export async function runOrchestrator(
 ): Promise<ArchetypeResult> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: MODEL_NAME,
     systemInstruction: `You are the master synthesizer for Team USA's athlete archetype engine — a fusion of coaching intuition, biomechanical science, and 120 years of Olympic and Paralympic history.
 You receive analysis from three expert personas and distill it into the definitive structured verdict.
 The output MUST contain exactly 3 archetypes. The 3rd archetype MUST be a Paralympic sport with paralympic: true.
@@ -115,15 +114,17 @@ Synthesize all three expert perspectives into exactly 3 archetypes. Requirements
 - Use conditional language throughout: "could align with," "profiles like yours have historically," "your biometrics suggest"
 - Archetype names: bold, original, superhero-style (e.g., "The Aerodynamic Ghost," "The Structural Powerhouse," "The Velocity Matrix")`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const result = await withTimeout(model.generateContent(prompt), 'Orchestrator synthesis');
+  const text = result.response.text();
+  const parsed = JSON.parse(text) as ArchetypeResult;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const parsed = JSON.parse(text) as ArchetypeResult;
-    return parsed;
-  } finally {
-    clearTimeout(timer);
+  if (!Array.isArray(parsed.archetypes) || parsed.archetypes.length !== 3) {
+    throw new Error('Gemini returned an invalid archetype count');
   }
+
+  if (!parsed.archetypes[2]?.paralympic) {
+    throw new Error('Gemini response is missing the required Paralympic archetype');
+  }
+
+  return parsed;
 }

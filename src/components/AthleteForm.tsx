@@ -1,92 +1,117 @@
 'use client';
 
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import type { ArchetypeResult } from '@/lib/agents/types';
+import type { AthleteProfile, ClosestSport, SportStatMap } from '@/useOlympicData';
 
-interface Archetype {
-  rank: number;
-  archetypeName: string;
-  sport: string;
-  paralympic: boolean;
-  matchScore: number;
-  tagline: string;
-  why: string;
-  goldenEra: string;
-  historicalNote: string;
-  lateBloomer: string;
-  traits: string[];
-}
-
-interface ArchetypeResult {
-  overallArchetype: string;
-  tagline: string;
-  funFact: string;
-  archetypes: Archetype[];
-}
+type FormState = {
+  feet: string;
+  inches: string;
+  weightLbs: string;
+  age: string;
+  gender: string;
+  endurance: number;
+  power: number;
+};
 
 interface AthleteFormProps {
-  data: any;
+  data: SportStatMap | null;
   loading: boolean;
-  findClosestSports: (profile: { height: number; weight: number; age: number }) => Array<any>;
-  variant?: 'A' | 'B';
+  findClosestSports: (profile: AthleteProfile) => ClosestSport[];
 }
 
-export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }: AthleteFormProps) {
-  const [formData, setFormData] = useState({
-    feet: '',
-    inches: '',
-    weightLbs: '',
-    age: '',
-    gender: '',
-    endurance: 50,
-    power: 50
-  });
+const initialFormState: FormState = {
+  feet: '',
+  inches: '',
+  weightLbs: '',
+  age: '',
+  gender: '',
+  endurance: 50,
+  power: 50,
+};
+
+const inputClass =
+  'h-12 w-full rounded-md border border-white/12 bg-white/[0.06] px-3 text-[15px] text-white outline-none transition placeholder:text-slate-500 focus:border-[#f6c756] focus:bg-white/[0.09] focus:ring-2 focus:ring-[#f6c756]/20';
+
+const labelClass = 'mb-2 block text-sm font-semibold text-slate-200';
+
+function clampScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+export function AthleteForm({ data, loading, findClosestSports }: AthleteFormProps) {
+  const [formData, setFormData] = useState<FormState>(initialFormState);
   const [result, setResult] = useState<ArchetypeResult | string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
-  const titleText = 'Enter Your Athlete Profile';
-  const statusText = loading ? 'Loading data...' : data ? `${Object.keys(data).length} sports loaded` : 'Data error';
+  const sportsLoaded = data ? Object.keys(data).length : 0;
+  const statusText = loading
+    ? 'Syncing dataset'
+    : data
+      ? `${sportsLoaded} sports ready`
+      : 'Dataset unavailable';
+
+  const profilePreview = useMemo(() => {
+    const feet = Number.parseInt(formData.feet, 10);
+    const inches = Number.parseInt(formData.inches, 10);
+    const totalInches = (Number.isFinite(feet) ? feet : 0) * 12 + (Number.isFinite(inches) ? inches : 0);
+    const weight = Number.parseFloat(formData.weightLbs);
+    const age = Number.parseInt(formData.age, 10);
+
+    return {
+      height: totalInches > 0 ? `${totalInches} in` : 'Pending',
+      weight: Number.isFinite(weight) && weight > 0 ? `${Math.round(weight)} lb` : 'Pending',
+      age: Number.isFinite(age) && age > 0 ? `${age}` : 'Pending',
+    };
+  }, [formData.age, formData.feet, formData.inches, formData.weightLbs]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setAnalyzing(true);
+    setResult(null);
 
     try {
-      // Convert US measurements to metric for backend
-      const totalInches = (parseInt(formData.feet) || 0) * 12 + (parseInt(formData.inches) || 0);
+      const feet = Number.parseInt(formData.feet, 10) || 0;
+      const inches = Number.parseInt(formData.inches, 10) || 0;
+      const totalInches = feet * 12 + inches;
+      const weightLbs = Math.round(Number.parseFloat(formData.weightLbs) || 0);
       const heightCm = Math.round(totalInches * 2.54);
-      const weightKg = Math.round((parseFloat(formData.weightLbs) || 0) / 2.20462);
-      
+      const weightKg = Math.round(weightLbs / 2.20462);
+      const age = Number.parseInt(formData.age, 10);
+
       const userProfile = {
         height: heightCm,
         weight: weightKg,
-        age: parseInt(formData.age)
+        age,
       };
 
       const closestSports = findClosestSports(userProfile);
 
-      // US measurements for the API payload
-      const heightInches = totalInches;
-      const weightLbs = Math.round(parseFloat(formData.weightLbs) || 0);
-      const age = parseInt(formData.age);
-      const gender = formData.gender;
-      const endurance = formData.endurance;
-      const power = formData.power;
-
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ heightInches, weightLbs, age, gender, endurance, power, closestSports }),
+        body: JSON.stringify({
+          heightInches: totalInches,
+          weightLbs,
+          age,
+          gender: formData.gender,
+          endurance: formData.endurance,
+          power: formData.power,
+          closestSports,
+        }),
       });
+
       if (!res.ok) {
         const { error } = await res.json().catch(() => ({ error: 'Analysis failed' }));
         setResult(error || 'Analysis failed');
         return;
       }
-      const parsed: ArchetypeResult = await res.json();
+
+      const parsed = (await res.json()) as ArchetypeResult;
       setResult(parsed);
     } catch (err) {
       console.error(err);
-      setResult('Sorry, there was an error analyzing your profile. Please try again.');
+      setResult('Analysis could not be completed. Check the server configuration and try again.');
     } finally {
       setAnalyzing(false);
     }
@@ -94,276 +119,301 @@ export function AthleteForm({ data, loading, findClosestSports, variant = 'A' }:
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'endurance' || name === 'power' ? Number(value) : value,
+    }));
   };
 
+  const isReady = Boolean(data) && !loading;
+
   return (
-    <div className="w-full">
-      <div className="bg-slate-900 text-white rounded-xl shadow-2xl p-8 animate-bounce-in-up">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-black">
-            {titleText}
-          </h2>
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${loading ? 'bg-blue-500 text-white animate-pulse' : data ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+    <section className="min-w-0 rounded-lg border border-white/12 bg-[#0a1424]/90 shadow-2xl shadow-black/35 backdrop-blur">
+      <div className="border-b border-white/10 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#f6c756]">Athlete input deck</p>
+            <h2 className="mt-1 text-3xl font-black text-white sm:text-4xl">Find your archetype</h2>
+          </div>
+          <span
+            className={`w-fit rounded-md border px-3 py-2 text-sm font-semibold ${
+              loading
+                ? 'border-[#f6c756]/40 bg-[#f6c756]/10 text-[#f6c756]'
+                : data
+                  ? 'border-emerald-300/35 bg-emerald-400/10 text-emerald-200'
+                  : 'border-[#bf0d3e]/40 bg-[#bf0d3e]/12 text-red-200'
+            }`}
+          >
             {statusText}
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="group">
-              <label className="text-sm font-medium text-slate-100 mb-1 block">
-                Height (Feet)
-              </label>
-              <input
-                type="number"
-                name="feet"
-                value={formData.feet}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
-                placeholder="5"
-                min="3"
-                max="8"
-              />
+        <div className="mt-5 grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
+          {[
+            ['Height', profilePreview.height],
+            ['Weight', profilePreview.weight],
+            ['Age', profilePreview.age],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-3">
+              <div className="text-xs font-semibold text-slate-400">{label}</div>
+              <div className="mt-1 text-lg font-black text-white">{value}</div>
             </div>
-            <div className="group">
-              <label className="text-sm font-medium text-slate-100 mb-1 block">
-                Inches
-              </label>
-              <input
-                type="number"
-                name="inches"
-                value={formData.inches}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
-                placeholder="10"
-                min="0"
-                max="11"
-              />
-            </div>
-            <div className="group">
-              <label className="text-sm font-medium text-slate-100 mb-1 block">
-                Weight (lbs)
-              </label>
-              <input
-                type="number"
-                name="weightLbs"
-                value={formData.weightLbs}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
-                placeholder="160"
-              />
-            </div>
-            <div className="group">
-              <label className="text-sm font-medium text-slate-100 mb-1 block">
-                Age
-              </label>
-              <input
-                type="number"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
-                placeholder="25"
-              />
-            </div>
-            <div className="group">
-              <label className="text-sm font-medium text-slate-100 mb-1 block">
-                Gender
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-800 text-white placeholder-slate-400 transition-all group-hover:border-amber-400"
-              >
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-6 bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm font-bold text-amber-300">
-                  Endurance vs Power
-                </label>
-                <span className="text-lg font-black text-amber-400">{formData.endurance}/100</span>
-              </div>
-              <input
-                type="range"
-                name="endurance"
-                min="0"
-                max="100"
-                value={formData.endurance}
-                onChange={handleChange}
-                className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-              <div className="flex justify-between text-xs text-slate-400 mt-2 font-semibold">
-                <span>💪 Power</span>
-                <span>🏃 Endurance</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm font-bold text-amber-300">
-                  Strength vs Speed
-                </label>
-                <span className="text-lg font-black text-amber-400">{formData.power}/100</span>
-              </div>
-              <input
-                type="range"
-                name="power"
-                min="0"
-                max="100"
-                value={formData.power}
-                onChange={handleChange}
-                className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-              <div className="flex justify-between text-xs text-slate-400 mt-2 font-semibold">
-                <span>⚡ Speed</span>
-                <span>🔨 Strength</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={analyzing || loading || !data}
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 font-bold py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
-          >
-            {analyzing ? (
-              <span className="flex items-center justify-center">
-                <span className="inline-block animate-spin mr-2">⚙️</span>
-                Consulting our team of experts…
-              </span>
-            ) : (
-              '🎯 FIND MY SPORTS!'
-            )}
-          </button>
-        </form>
+          ))}
+        </div>
       </div>
 
-      {result && (
-        <div className="animate-scale-in mt-8">
-          {typeof result === 'string' ? (
-            <>
-              <h3 className="text-2xl font-black text-white mb-6 text-center">
-                Your Sport Matches
-              </h3>
-              <div className="space-y-4">
-                {result.split('\n').map((line, index) => (
-                  <p key={index} className="text-slate-200 leading-relaxed">{line}</p>
-                ))}
+      <form onSubmit={handleSubmit} className="space-y-6 p-5 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-5">
+          <div>
+            <label className={labelClass} htmlFor="feet">
+              Feet
+            </label>
+            <input
+              id="feet"
+              type="number"
+              name="feet"
+              value={formData.feet}
+              onChange={handleChange}
+              required
+              className={inputClass}
+              placeholder="5"
+              min="3"
+              max="8"
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="inches">
+              Inches
+            </label>
+            <input
+              id="inches"
+              type="number"
+              name="inches"
+              value={formData.inches}
+              onChange={handleChange}
+              required
+              className={inputClass}
+              placeholder="10"
+              min="0"
+              max="11"
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="weightLbs">
+              Weight
+            </label>
+            <input
+              id="weightLbs"
+              type="number"
+              name="weightLbs"
+              value={formData.weightLbs}
+              onChange={handleChange}
+              required
+              className={inputClass}
+              placeholder="160"
+              min="50"
+              max="500"
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="age">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              required
+              className={inputClass}
+              placeholder="25"
+              min="8"
+              max="90"
+            />
+          </div>
+          <div className="sm:col-span-2 md:col-span-1">
+            <label className={labelClass} htmlFor="gender">
+              Division
+            </label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+              className={inputClass}
+            >
+              <option value="">Select</option>
+              <option value="Male">Men</option>
+              <option value="Female">Women</option>
+              <option value="Other">Open</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-md border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <label className="font-semibold text-white" htmlFor="endurance">
+                Endurance index
+              </label>
+              <span className="rounded-md bg-[#f6c756]/12 px-2 py-1 text-sm font-black text-[#f6c756]">
+                {formData.endurance}
+              </span>
+            </div>
+            <input
+              id="endurance"
+              type="range"
+              name="endurance"
+              min="0"
+              max="100"
+              value={formData.endurance}
+              onChange={handleChange}
+              className="range-field"
+            />
+            <div className="mt-2 flex justify-between text-xs font-semibold text-slate-400">
+              <span>Explosive</span>
+              <span>Enduring</span>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <label className="font-semibold text-white" htmlFor="power">
+                Strength index
+              </label>
+              <span className="rounded-md bg-[#f6c756]/12 px-2 py-1 text-sm font-black text-[#f6c756]">
+                {formData.power}
+              </span>
+            </div>
+            <input
+              id="power"
+              type="range"
+              name="power"
+              min="0"
+              max="100"
+              value={formData.power}
+              onChange={handleChange}
+              className="range-field"
+            />
+            <div className="mt-2 flex justify-between text-xs font-semibold text-slate-400">
+              <span>Speed</span>
+              <span>Strength</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={analyzing || !isReady}
+          className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-md bg-[#f6c756] px-6 py-4 text-base font-black text-[#08111f] shadow-lg shadow-[#f6c756]/20 transition hover:-translate-y-0.5 hover:bg-white disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300 disabled:shadow-none"
+        >
+          <span className="relative z-10">
+            {analyzing ? 'Consulting the specialist panel' : 'Run archetype analysis'}
+          </span>
+          {analyzing && <span className="absolute inset-x-0 bottom-0 h-1 animate-scan bg-[#bf0d3e]" />}
+        </button>
+
+        {analyzing && (
+          <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-3" aria-live="polite">
+            {['Coach fit', 'Biomechanics', 'Team USA history'].map((step) => (
+              <div key={step} className="rounded-md border border-[#f6c756]/20 bg-[#f6c756]/10 px-3 py-2">
+                {step}
               </div>
-            </>
+            ))}
+          </div>
+        )}
+      </form>
+
+      {result && (
+        <div className="border-t border-white/10 p-5 sm:p-6" aria-live="polite">
+          {typeof result === 'string' ? (
+            <div className="rounded-md border border-[#bf0d3e]/35 bg-[#bf0d3e]/12 p-4 text-red-100">
+              {result}
+            </div>
           ) : (
-            <>
-              <div className="mb-8 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 p-1 rounded-2xl animate-glow">
-                <div className="bg-slate-900 rounded-2xl p-8">
-                  <h3 className="text-5xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent mb-3 animate-pulse">
-                    {result.overallArchetype}
-                  </h3>
-                  <p className="text-xl text-amber-300 font-bold mb-6">
-                    "{result.tagline}"
-                  </p>
-                  <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl p-6 border-2 border-amber-500 shadow-lg">
-                    <p className="text-sm font-bold text-amber-300 mb-2">🏆 TEAM USA HISTORICAL INSIGHT</p>
-                    <p className="text-lg text-amber-100 font-semibold">{result.funFact}</p>
-                  </div>
-                </div>
+            <div className="space-y-5">
+              <div className="rounded-md border border-[#f6c756]/25 bg-[#f6c756]/10 p-5">
+                <p className="text-sm font-semibold text-[#f6c756]">Overall archetype</p>
+                <h3 className="mt-1 text-3xl font-black text-white sm:text-4xl">{result.overallArchetype}</h3>
+                <p className="mt-3 text-lg text-slate-100">{result.tagline}</p>
+                <p className="mt-4 border-t border-[#f6c756]/20 pt-4 text-sm leading-6 text-[#ffe7a6]">
+                  {result.funFact}
+                </p>
               </div>
 
-              <div className="space-y-6">
-                {result.archetypes?.map((archetype, idx) => (
-                  <div 
-                    key={archetype.rank} 
-                    className="border-2 border-amber-500 rounded-xl p-8 bg-gradient-to-br from-slate-800 to-slate-900 shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 hover:border-amber-400"
-                    style={{ animationDelay: `${idx * 0.1}s` }}
+              <div className="space-y-4">
+                {result.archetypes?.map((archetype) => (
+                  <article
+                    key={`${archetype.rank}-${archetype.sport}`}
+                    className="rounded-md border border-white/12 bg-white/[0.04] p-5 transition hover:border-[#f6c756]/45"
                   >
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-5xl font-black bg-gradient-to-br from-amber-400 to-orange-500 rounded-full w-16 h-16 flex items-center justify-center text-slate-900">
-                          #{archetype.rank}
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-white text-lg font-black text-[#08111f]">
+                          {archetype.rank.toString().padStart(2, '0')}
                         </div>
                         <div>
-                          <h4 className="text-3xl font-black text-amber-300">
-                            {archetype.archetypeName}
-                          </h4>
-                          <p className="text-lg text-slate-300 font-bold">
-                            {archetype.sport} {archetype.paralympic && '🏅 PARALYMPIC'}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-2xl font-black text-white">{archetype.archetypeName}</h4>
+                            {archetype.paralympic && (
+                              <span className="rounded-md border border-[#8ad7ff]/35 bg-[#8ad7ff]/10 px-2 py-1 text-xs font-black text-[#bdeaff]">
+                                Paralympic
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 font-semibold text-[#f6c756]">{archetype.sport}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">{archetype.matchScore}%</div>
-                        <div className="text-sm text-slate-400 font-bold mt-1">MATCH SCORE</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg p-4 mb-6 border border-amber-500/30 italic">
-                      <p className="text-xl text-amber-200 font-semibold">"{archetype.tagline}"</p>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div>
-                        <h5 className="font-black text-amber-400 mb-3 text-lg">💪 WHY THIS SPORT?</h5>
-                        <p className="text-slate-200 text-base leading-relaxed">
-                          {archetype.why}
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-800/50 rounded-lg p-4 border-l-4 border-amber-500">
-                        <h5 className="font-black text-amber-300 mb-2 text-lg">🌟 GOLDEN ERA MOMENT</h5>
-                        <p className="text-slate-200 leading-relaxed">
-                          {archetype.goldenEra}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-black text-amber-400 mb-3 text-lg">📊 HISTORICAL PATTERN</h5>
-                        <p className="text-slate-200 leading-relaxed">
-                          {archetype.historicalNote}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-black text-amber-400 mb-3 text-lg">📈 YOUR DEVELOPMENT ARC</h5>
-                        <p className="text-slate-200 leading-relaxed">
-                          {archetype.lateBloomer}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-black text-amber-400 mb-3 text-lg">⚡ KEY TRAITS</h5>
-                        <div className="flex flex-wrap gap-3">
-                          {archetype.traits?.map((trait, index) => (
-                            <span 
-                              key={index} 
-                              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 rounded-full text-sm font-bold shadow-lg hover:shadow-amber-500/50 transition-all transform hover:scale-110"
-                            >
-                              {trait}
-                            </span>
-                          ))}
+                      <div className="w-full sm:w-28 sm:text-right">
+                        <div className="text-3xl font-black text-emerald-200">
+                          {clampScore(archetype.matchScore)}%
                         </div>
+                        <div className="text-xs font-semibold text-slate-400">Match score</div>
                       </div>
                     </div>
-                  </div>
+
+                    <p className="mt-5 rounded-md bg-[#002868]/35 p-4 text-lg font-semibold text-white">
+                      {archetype.tagline}
+                    </p>
+
+                    <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                      <div>
+                        <h5 className="font-black text-[#f6c756]">Sport fit</h5>
+                        <p className="mt-2 leading-7 text-slate-200">{archetype.why}</p>
+                      </div>
+                      <div>
+                        <h5 className="font-black text-[#f6c756]">Golden era</h5>
+                        <p className="mt-2 leading-7 text-slate-200">{archetype.goldenEra}</p>
+                      </div>
+                      <div>
+                        <h5 className="font-black text-[#f6c756]">Historical pattern</h5>
+                        <p className="mt-2 leading-7 text-slate-200">{archetype.historicalNote}</p>
+                      </div>
+                      <div>
+                        <h5 className="font-black text-[#f6c756]">Development arc</h5>
+                        <p className="mt-2 leading-7 text-slate-200">{archetype.lateBloomer}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {archetype.traits?.map((trait) => (
+                        <span
+                          key={trait}
+                          className="rounded-md border border-white/12 bg-white/[0.07] px-3 py-2 text-sm font-semibold text-slate-100"
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

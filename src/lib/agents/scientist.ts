@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { AnalyzeRequest, PersonaOutput } from './types';
-
-const TIMEOUT_MS = 25_000;
+import { MODEL_NAME, withTimeout } from './utils';
 
 export async function runScientist(
   req: AnalyzeRequest,
@@ -9,7 +8,7 @@ export async function runScientist(
 ): Promise<PersonaOutput> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: MODEL_NAME,
     systemInstruction: `You are Dr. Chen, a biomechanics researcher and sports scientist who has spent 20 years profiling Team USA athletes across all disciplines.
 Your lens is data-driven: biometric similarity, lever ratios, power-to-weight profiles, and statistical alignment with historical archetypes.
 You cross-reference athlete biometrics against historical Team USA averages and surface which sports this body statistically matches best.
@@ -65,18 +64,11 @@ As Dr. Chen, perform a biomechanical analysis. For 2-3 sports:
 
 Use precise numbers. Reference both US and metric measurements where relevant.`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    return {
-      persona: 'scientist',
-      candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
-      analysis: text,
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+  const result = await withTimeout(model.generateContent(prompt), 'Scientist persona');
+  const text = result.response.text();
+  return {
+    persona: 'scientist',
+    candidates: req.closestSports.slice(0, 3).map((s) => s.sport),
+    analysis: text,
+  };
 }
