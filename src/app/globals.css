@@ -33,6 +33,10 @@
   --success-soft: #092617;
   --danger-text: #ffd5df;
   --danger-soft: #35101b;
+  --grid-line: rgba(255, 255, 255, 0.055);
+  --flag-red-soft: rgba(191, 13, 62, 0.18);
+  --flag-blue-soft: rgba(0, 40, 104, 0.34);
+  --flag-white-soft: rgba(255, 255, 255, 0.08);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
@@ -68,6 +72,10 @@
   --success-soft: #dff7e9;
   --danger-text: #8f002a;
   --danger-soft: #ffe6ed;
+  --grid-line: rgba(0, 40, 104, 0.08);
+  --flag-red-soft: rgba(179, 25, 66, 0.14);
+  --flag-blue-soft: rgba(0, 40, 104, 0.12);
+  --flag-white-soft: rgba(255, 255, 255, 0.78);
   --shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
 }
 
@@ -93,7 +101,7 @@ body {
   min-height: 100%;
   margin: 0;
   background:
-    linear-gradient(135deg, rgba(191, 13, 62, 0.12) 0 11%, transparent 11% 30%, rgba(0, 40, 104, 0.16) 30% 44%, transparent 44%),
+    linear-gradient(135deg, var(--flag-red-soft) 0 11%, transparent 11% 30%, var(--flag-blue-soft) 30% 44%, transparent 44%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-barlow), sans-serif;
@@ -145,12 +153,39 @@ select {
 }
 
 .stadium-grid {
+  overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(191, 13, 62, 0.12) 0 10%, transparent 10% 34%, rgba(0, 40, 104, 0.18) 34% 48%, transparent 48%),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(0deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(135deg, var(--flag-red-soft) 0 10%, transparent 10% 34%, var(--flag-blue-soft) 34% 48%, transparent 48%),
     var(--background);
   background-size: 56px 56px, 56px 56px, 100% 100%, auto;
+}
+
+.stadium-grid::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(180deg, transparent 0 16%, var(--flag-red-soft) 16% 20%, transparent 20% 32%, var(--flag-white-soft) 32% 36%, transparent 36% 48%, var(--flag-blue-soft) 48% 54%, transparent 54%),
+    linear-gradient(105deg, transparent 0 57%, var(--flag-blue-soft) 57% 70%, transparent 70%),
+    linear-gradient(105deg, transparent 0 66%, var(--flag-red-soft) 66% 75%, transparent 75%);
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.stadium-grid::after {
+  position: absolute;
+  top: 7%;
+  right: -18%;
+  width: 48rem;
+  height: 21rem;
+  content: "";
+  background:
+    linear-gradient(180deg, var(--usa-red) 0 13%, var(--stripe-white) 13% 20%, var(--usa-red) 20% 33%, var(--stripe-white) 33% 40%, var(--usa-red) 40% 53%, var(--stripe-white) 53% 60%, var(--usa-red) 60% 73%, var(--stripe-white) 73% 80%, var(--usa-red) 80% 93%, var(--stripe-white) 93% 100%);
+  opacity: 0.08;
+  transform: rotate(-10deg);
+  pointer-events: none;
 }
 
 .field-stripe {

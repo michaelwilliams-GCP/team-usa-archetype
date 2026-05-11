@@ -37,16 +37,23 @@ export function Nav() {
           <button
             type="button"
             aria-pressed={theme === 'light'}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-            className="flex h-10 items-center gap-2 rounded-md border border-[color:var(--border)] bg-[var(--panel-strong)] px-2 text-sm font-black text-[var(--foreground)] transition hover:border-[color:var(--accent-solid)]"
+            className="grid h-10 grid-cols-2 overflow-hidden rounded-md border border-[color:var(--border)] bg-[var(--panel-strong)] text-sm font-black text-[var(--foreground)] transition hover:border-[color:var(--accent-solid)]"
           >
-            <span className="px-2">{theme === 'dark' ? 'Dark' : 'Light'}</span>
-            <span className="relative h-6 w-11 rounded-full bg-[var(--usa-blue)]">
-              <span
-                className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--stripe-white)] shadow-sm transition ${
-                  theme === 'dark' ? 'left-1' : 'left-6'
-                }`}
-              />
+            <span
+              className={`flex items-center px-3 transition ${
+                theme === 'dark' ? 'bg-[var(--usa-blue)] text-white' : 'text-[var(--faint)]'
+              }`}
+            >
+              Dark
+            </span>
+            <span
+              className={`flex items-center px-3 transition ${
+                theme === 'light' ? 'bg-[var(--usa-red)] text-white' : 'text-[var(--faint)]'
+              }`}
+            >
+              Light
             </span>
           </button>
         </div>
