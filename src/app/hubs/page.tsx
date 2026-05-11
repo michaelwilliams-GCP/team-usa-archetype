@@ -70,7 +70,6 @@ const sportHubs = {
 export default function HubsPage() {
   const { olympicStats, paralympicStats, loading, error } = useParityData();
   const [selectedSport, setSelectedSport] = useState(null);
-  const [selectedHub, setSelectedHub] = useState(null);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error: {error}</div>;
@@ -121,7 +120,7 @@ export default function HubsPage() {
             </span>
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Discover how America's diverse landscape could help find the next Team USA stars.
+            Discover how America&apos;s diverse landscape could help find the next Team USA stars.
             <span className="text-yellow-400 font-semibold"> Explore geographical hubs where sports excellence thrives.</span>
           </p>
         </header>
@@ -143,7 +142,7 @@ export default function HubsPage() {
             <h3 className="text-2xl font-semibold text-white mb-4">The American Landscape Advantage</h3>
             <p className="text-slate-300 mb-4">
               From coastal California beaches perfect for swimming and water sports, to the mountain peaks of Colorado
-              that nurture skiing champions, America's geographical diversity creates natural training grounds for
+              that nurture skiing champions, America&apos;s geographical diversity creates natural training grounds for
               Olympic and Paralympic excellence.
             </p>
             <p className="text-slate-400 text-sm">

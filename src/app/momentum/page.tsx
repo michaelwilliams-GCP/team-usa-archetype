@@ -28,30 +28,30 @@ export default function MomentumPage() {
       ].filter(sport => (olympicStats.sports?.[sport]?.athleteCount || 0) + (paralympicStats.sports?.[sport]?.athleteCount || 0) > 0);
 
       if (sports.length > 0) {
-        fetchMomentumData(sports);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoadingMomentum(true);
+        const fetchData = async () => {
+          try {
+            const response = await fetch('/api/momentum', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(sports)
+            });
+            const data = await response.json();
+            if (data.results) {
+              const sorted = data.results.sort((a: MomentumResult, b: MomentumResult) => b.momentumScore - a.momentumScore);
+              setMomentumData(sorted);
+            }
+          } catch (err) {
+            console.error('Failed to fetch momentum data:', err);
+          } finally {
+            setLoadingMomentum(false);
+          }
+        };
+        fetchData();
       }
     }
   }, [olympicStats, paralympicStats]);
-
-  const fetchMomentumData = async (sports: string[]) => {
-    setLoadingMomentum(true);
-    try {
-      const response = await fetch('/api/momentum', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sports)
-      });
-      const data = await response.json();
-      if (data.results) {
-        const sorted = data.results.sort((a: MomentumResult, b: MomentumResult) => b.momentumScore - a.momentumScore);
-        setMomentumData(sorted);
-      }
-    } catch (err) {
-      console.error('Failed to fetch momentum data:', err);
-    } finally {
-      setLoadingMomentum(false);
-    }
-  };
 
   if (loading || loadingMomentum) return <div className="min-h-screen flex items-center justify-center text-white">Loading momentum analysis...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error: {error}</div>;
@@ -162,7 +162,7 @@ export default function MomentumPage() {
           <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 max-w-4xl mx-auto">
             <h3 className="text-2xl font-semibold text-white mb-4">LA28 Prediction Engine</h3>
             <p className="text-slate-300 mb-4">
-              This momentum analysis uses AI to evaluate Team USA's growth patterns, World Championship performances,
+              This momentum analysis uses AI to evaluate Team USA&apos;s growth patterns, World Championship performances,
               and preparation milestones across all Olympic and Paralympic sports. Rankings are based on upward trajectory,
               athlete pipeline strength, and strategic positioning for 2028 success.
             </p>

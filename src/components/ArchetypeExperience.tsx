@@ -138,7 +138,7 @@ export function ArchetypeExperience() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-md bg-slate-800/50 p-4 border border-slate-700/50">
                 <p className="text-sm text-[var(--muted)] italic mb-2">
-                  "This tool predicted my swimming archetype perfectly! The AI analysis was spot-on with my training style."
+                  &quot;This tool predicted my swimming archetype perfectly! The AI analysis was spot-on with my training style.&quot;
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-blue-400 font-semibold">Michael Phelps</span>
@@ -147,7 +147,7 @@ export function ArchetypeExperience() {
               </div>
               <div className="rounded-md bg-slate-800/50 p-4 border border-slate-700/50">
                 <p className="text-sm text-[var(--muted)] italic mb-2">
-                  "As a coach, I love how this shows the historical patterns. It's like having a scouting report from the past."
+                  &quot;As a coach, I love how this shows the historical patterns. It&apos;s like having a scouting report from the past.&quot;
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-red-400 font-semibold">Gregg Troy</span>
