@@ -15,6 +15,9 @@ export function Nav() {
             <Link href="/parity" className="text-slate-300 hover:text-white transition-colors">
               Performance Parity
             </Link>
+            <Link href="/hubs" className="text-slate-300 hover:text-white transition-colors">
+              Hometown Success
+            </Link>
           </div>
         </div>
       </div>
