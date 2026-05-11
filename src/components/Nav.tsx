@@ -18,6 +18,9 @@ export function Nav() {
             <Link href="/hubs" className="text-slate-300 hover:text-white transition-colors">
               Hometown Success
             </Link>
+            <Link href="/momentum" className="text-slate-300 hover:text-white transition-colors">
+              LA28 Momentum
+            </Link>
           </div>
         </div>
       </div>
