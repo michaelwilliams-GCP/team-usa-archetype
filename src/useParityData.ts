@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
+import type { SportStatMap } from '@/useOlympicData';
 
 // Type definitions
 interface RawRow {
-  NOC?: string;
   Sport?: string;
   sport?: string;
   Year?: string;
@@ -14,7 +14,6 @@ interface RawRow {
   weight_kg?: string;
   Age?: string;
   age?: string;
-  Medal?: string;
   [key: string]: string | undefined;
 }
 
@@ -37,7 +36,7 @@ interface SportData {
   }>;
 }
 
-interface ProcessedSport {
+export interface ProcessedSport {
   avgHeight: number | null;
   avgWeight: number | null;
   avgHeightCm: number | null;
@@ -75,6 +74,12 @@ function fetchCSV(filename: string): Promise<RawRow[]> {
   });
 }
 
+async function fetchOlympicSummary(): Promise<SportStatMap> {
+  const res = await fetch('/data/team-usa-sport-stats.json');
+  if (!res.ok) throw new Error(`Olympic sport summary failed to load (${res.status})`);
+  return (await res.json()) as SportStatMap;
+}
+
 function avg(arr: (string | undefined)[]): number | null {
   const clean = arr
     .map(Number)
@@ -83,12 +88,45 @@ function avg(arr: (string | undefined)[]): number | null {
   return Math.round(clean.reduce((a, b) => a + b, 0) / clean.length);
 }
 
-function buildStats(rows: RawRow[], isOlympic = true): ParityStats {
-  const usa = isOlympic ? rows.filter((r) => r.NOC === 'USA') : rows;
+function buildOlympicStats(summary: SportStatMap): ParityStats {
+  const sports: Record<string, ProcessedSport> = {};
+  const byYear: Record<string, YearAggregation> = {};
+
+  for (const [sport, stats] of Object.entries(summary)) {
+    const medals = Math.round(stats.medalRate * stats.athleteCount);
+    sports[sport] = {
+      avgHeight: stats.avgHeight,
+      avgWeight: stats.avgWeight,
+      avgHeightCm: stats.avgHeightCm,
+      avgWeightKg: stats.avgWeightKg,
+      avgAge: stats.avgAge,
+      medalRate: stats.medalRate,
+      athleteCount: stats.athleteCount,
+      medals,
+    };
+
+    if (stats.goldenYear) {
+      const year = stats.goldenYear.year;
+      if (!byYear[year]) byYear[year] = { total: 0, medals: 0 };
+      byYear[year].total += stats.goldenYear.athletes;
+      byYear[year].medals += stats.goldenYear.medals;
+    }
+  }
+
+  return {
+    sports,
+    totalAthletes: Object.values(sports).reduce((sum, s) => sum + s.athleteCount, 0),
+    totalMedals: Object.values(sports).reduce((sum, s) => sum + s.medals, 0),
+    totalSports: Object.keys(sports).length,
+    byYear,
+  };
+}
+
+function buildParalympicStats(rows: RawRow[]): ParityStats {
   const bySport: Record<string, SportData> = {};
   const byYear: Record<string, YearAggregation> = {};
 
-  for (const row of usa) {
+  for (const row of rows) {
     const sport = (row.Sport || row.sport)?.trim();
     const year = (row.Year || row.year)?.trim();
     if (!sport || !year) continue;
@@ -110,25 +148,15 @@ function buildStats(rows: RawRow[], isOlympic = true): ParityStats {
     s.ages.push(row.Age || row.age);
     s.total += 1;
 
-    if (isOlympic) {
-      const hasMedal = row.Medal && row.Medal !== 'NA';
-      if (hasMedal) s.medals += 1;
-    }
-
     if (!s.byYear[year]) {
       s.byYear[year] = { medals: 0, total: 0, heights: [], weights: [] };
     }
     s.byYear[year].total += 1;
     s.byYear[year].heights.push(row.Height || row.height_cm);
     s.byYear[year].weights.push(row.Weight || row.weight_kg);
-    if (isOlympic && row.Medal && row.Medal !== 'NA') {
-      s.byYear[year].medals += 1;
-    }
 
-    // Aggregate by year
     if (!byYear[year]) byYear[year] = { total: 0, medals: 0 };
     byYear[year].total += 1;
-    if (isOlympic && row.Medal && row.Medal !== 'NA') byYear[year].medals += 1;
   }
 
   const sports: Record<string, ProcessedSport> = {};
@@ -141,10 +169,7 @@ function buildStats(rows: RawRow[], isOlympic = true): ParityStats {
       avgHeightCm,
       avgWeightKg,
       avgAge: avg(data.ages),
-      medalRate:
-        isOlympic && data.total > 0
-          ? Math.round((data.medals / data.total) * 100) / 100
-          : 0,
+      medalRate: 0,
       athleteCount: data.total,
       medals: data.medals,
     };
@@ -154,12 +179,9 @@ function buildStats(rows: RawRow[], isOlympic = true): ParityStats {
     (sum, s) => sum + s.athleteCount,
     0
   );
-  const totalMedals = isOlympic
-    ? Object.values(sports).reduce((sum, s) => sum + s.medals, 0)
-    : 0;
   const totalSports = Object.keys(sports).length;
 
-  return { sports, totalAthletes, totalMedals, totalSports, byYear };
+  return { sports, totalAthletes, totalMedals: 0, totalSports, byYear };
 }
 
 export function useParityData(): ParityDataHookResult {
@@ -170,11 +192,9 @@ export function useParityData(): ParityDataHookResult {
 
   useEffect(() => {
     Promise.all([
-      fetchCSV('/data/athlete_events.csv').then((rows) =>
-        buildStats(rows, true)
-      ),
+      fetchOlympicSummary().then((summary) => buildOlympicStats(summary)),
       fetchCSV('/data/paralympic_athletes.csv').then((rows) =>
-        buildStats(rows, false)
+        buildParalympicStats(rows)
       ),
     ])
       .then(([olympic, paralympic]) => {

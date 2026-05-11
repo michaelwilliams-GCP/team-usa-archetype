@@ -3,118 +3,72 @@
 :root,
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --background: #050505;
+  --background: #05050a;
   --foreground: #f8fafc;
-  --panel: #101010;
-  --panel-strong: #171717;
-  --panel-soft: #1f1f1f;
-  --field-bg: #141414;
-  --field-focus: #1b1b1b;
-  --chart-bg: #050505;
-  --border: #303030;
-  --border-strong: #424242;
-  --muted: #c9c9c9;
-  --faint: #8d8d8d;
-  --label: #f2f2f2;
+  --panel: #0d0f17;
+  --panel-strong: #151925;
+  --panel-soft: #202636;
+  --field-bg: #121622;
+  --field-focus: #181d2c;
+  --chart-bg: #080a10;
+  --border: #343a4d;
+  --border-strong: #556174;
+  --muted: #d0d7e2;
+  --faint: #9aa7ba;
+  --label: #ffffff;
   --usa-red: #bf0d3e;
-  --usa-blue: #111111;
-  --signal: #f6c756;
-  --accent-solid: #f6c756;
-  --accent-text: #f6c756;
-  --accent-soft: #322711;
-  --accent-ring: rgba(246, 199, 86, 0.26);
-  --accent-contrast: #050505;
-  --ice: #58c8f6;
-  --info-text: #8ad7ff;
-  --info-soft: #0c2833;
+  --usa-blue: #002868;
+  --usa-blue-bright: #67a2ff;
+  --stripe-white: #ffffff;
+  --signal: #ffffff;
+  --accent-solid: #bf0d3e;
+  --accent-text: #ffb5c6;
+  --accent-soft: #310814;
+  --accent-ring: rgba(191, 13, 62, 0.35);
+  --accent-contrast: #ffffff;
+  --ice: #67a2ff;
+  --info-text: #9fc5ff;
+  --info-soft: #071b3f;
   --success-text: #9ef2c4;
   --success-soft: #092617;
   --danger-text: #ffd5df;
   --danger-soft: #35101b;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-}
-
-/* American Flag Background Elements */
-.stadium-grid::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    linear-gradient(rgba(191, 13, 62, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(191, 13, 62, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  pointer-events: none;
-}
-
-.stadium-grid::after {
-  content: '';
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 80px;
-  height: 50px;
-  background: linear-gradient(135deg, #bf0d3e 50%, #3c3b6e 50%);
-  border-radius: 4px;
-  opacity: 0.1;
-  animation: flag-wave 8s ease-in-out infinite;
-}
-
-@keyframes flag-wave {
-  0%, 100% { transform: translateX(0) rotate(-2deg); }
-  25% { transform: translateX(5px) rotate(1deg); }
-  50% { transform: translateX(-3px) rotate(-1deg); }
-  75% { transform: translateX(2px) rotate(0.5deg); }
-}
-
-.field-stripe {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(191, 13, 62, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 40%,
-    rgba(59, 59, 110, 0.1) 40%,
-    rgba(59, 59, 110, 0.1) 60%,
-    rgba(191, 13, 62, 0.1) 60%,
-    rgba(191, 13, 62, 0.1) 80%,
-    transparent 80%
-  );
-  box-shadow: 0 0 20px rgba(191, 13, 62, 0.2);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --background: #f7f4ed;
-  --foreground: #111111;
-  --panel: #fffefa;
-  --panel-strong: #f1eadf;
-  --panel-soft: #ded2bd;
-  --field-bg: #fffaf0;
+  --background: #f6f8fc;
+  --foreground: #101520;
+  --panel: #ffffff;
+  --panel-strong: #eef2f8;
+  --panel-soft: #dfe6f0;
+  --field-bg: #ffffff;
   --field-focus: #ffffff;
-  --chart-bg: #fffefa;
-  --border: #bbae94;
-  --border-strong: #746850;
-  --muted: #333333;
-  --faint: #4f4f4f;
-  --label: #151515;
-  --usa-red: #bf0d3e;
-  --usa-blue: #111111;
-  --signal: #f6c756;
-  --accent-solid: #f6c756;
-  --accent-text: #573800;
-  --accent-soft: #ffecaa;
-  --accent-ring: rgba(87, 56, 0, 0.26);
-  --accent-contrast: #111111;
-  --ice: #00739c;
-  --info-text: #005779;
-  --info-soft: #d6f3ff;
+  --chart-bg: #ffffff;
+  --border: #c6cfdd;
+  --border-strong: #65748a;
+  --muted: #334155;
+  --faint: #59677a;
+  --label: #101520;
+  --usa-red: #b31942;
+  --usa-blue: #002868;
+  --usa-blue-bright: #004f9f;
+  --stripe-white: #ffffff;
+  --signal: #002868;
+  --accent-solid: #b31942;
+  --accent-text: #8d1235;
+  --accent-soft: #ffe8ef;
+  --accent-ring: rgba(179, 25, 66, 0.28);
+  --accent-contrast: #ffffff;
+  --ice: #0057b8;
+  --info-text: #003f88;
+  --info-soft: #e4efff;
   --success-text: #006943;
   --success-soft: #dff7e9;
   --danger-text: #8f002a;
   --danger-soft: #ffe6ed;
-  --shadow: 0 24px 70px rgba(49, 41, 25, 0.14);
+  --shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
 }
 
 @theme inline {
@@ -138,7 +92,9 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: var(--background);
+  background:
+    linear-gradient(135deg, rgba(191, 13, 62, 0.12) 0 11%, transparent 11% 30%, rgba(0, 40, 104, 0.16) 30% 44%, transparent 44%),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-barlow), sans-serif;
 }
@@ -189,12 +145,34 @@ select {
 }
 
 .stadium-grid {
-  background: var(--background);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(191, 13, 62, 0.12) 0 10%, transparent 10% 34%, rgba(0, 40, 104, 0.18) 34% 48%, transparent 48%),
+    var(--background);
+  background-size: 56px 56px, 56px 56px, 100% 100%, auto;
 }
 
 .field-stripe {
-  background: var(--usa-red);
-  border-bottom: 1px solid var(--accent-solid);
+  background: linear-gradient(90deg, var(--usa-red) 0 34%, var(--stripe-white) 34% 38%, var(--usa-blue) 38% 100%);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.usa-rule {
+  background: linear-gradient(90deg, var(--usa-red), var(--stripe-white), var(--usa-blue));
+}
+
+.usa-card {
+  position: relative;
+}
+
+.usa-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  content: "";
+  background: linear-gradient(90deg, var(--usa-red), var(--stripe-white), var(--usa-blue));
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .range-field {

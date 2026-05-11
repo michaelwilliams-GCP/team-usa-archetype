@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParityData } from '@/useParityData';
 
 type MomentumResult = {
@@ -12,167 +12,244 @@ type MomentumResult = {
   analysis: string;
 };
 
+function LoadingState({ label }: { label: string }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 text-[var(--foreground)]">
+      <div className="usa-card rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-6 pt-7 shadow-[var(--shadow)]">
+        <p className="text-sm font-black uppercase text-[var(--accent-text)]">{label}</p>
+      </div>
+    </main>
+  );
+}
+
+function scoreTone(score: number) {
+  if (score >= 80) {
+    return {
+      label: 'High momentum',
+      color: 'var(--success-text)',
+      soft: 'var(--success-soft)',
+      border: 'var(--success-text)',
+    };
+  }
+
+  if (score >= 60) {
+    return {
+      label: 'Building',
+      color: 'var(--accent-text)',
+      soft: 'var(--accent-soft)',
+      border: 'var(--accent-solid)',
+    };
+  }
+
+  return {
+    label: 'Developing',
+    color: 'var(--danger-text)',
+    soft: 'var(--danger-soft)',
+    border: 'var(--usa-red)',
+  };
+}
+
 export default function MomentumPage() {
   const { olympicStats, paralympicStats, loading, error } = useParityData();
   const [momentumData, setMomentumData] = useState<MomentumResult[]>([]);
   const [loadingMomentum, setLoadingMomentum] = useState(false);
+  const [momentumError, setMomentumError] = useState<string | null>(null);
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (olympicStats && paralympicStats) {
-      const sports = [
-        ...new Set([
-          ...Object.keys(olympicStats.sports || {}),
-          ...Object.keys(paralympicStats.sports || {})
-        ])
-      ].filter(sport => (olympicStats.sports?.[sport]?.athleteCount || 0) + (paralympicStats.sports?.[sport]?.athleteCount || 0) > 0);
+  const sports = useMemo(() => {
+    const counts = new Map<string, number>();
 
-      if (sports.length > 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLoadingMomentum(true);
-        const fetchData = async () => {
-          try {
-            const response = await fetch('/api/momentum', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(sports)
-            });
-            const data = await response.json();
-            if (data.results) {
-              const sorted = data.results.sort((a: MomentumResult, b: MomentumResult) => b.momentumScore - a.momentumScore);
-              setMomentumData(sorted);
-            }
-          } catch (err) {
-            console.error('Failed to fetch momentum data:', err);
-          } finally {
-            setLoadingMomentum(false);
-          }
-        };
-        fetchData();
-      }
+    for (const [sport, stats] of Object.entries(olympicStats?.sports ?? {})) {
+      counts.set(sport, (counts.get(sport) ?? 0) + stats.athleteCount);
     }
+
+    for (const [sport, stats] of Object.entries(paralympicStats?.sports ?? {})) {
+      counts.set(sport, (counts.get(sport) ?? 0) + stats.athleteCount);
+    }
+
+    return [...counts.entries()]
+      .filter(([, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([sport]) => sport);
   }, [olympicStats, paralympicStats]);
 
-  if (loading || loadingMomentum) return <div className="min-h-screen flex items-center justify-center text-white">Loading momentum analysis...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error: {error}</div>;
+  useEffect(() => {
+    if (!sports.length) return;
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
-  };
+    let cancelled = false;
+    const controller = new AbortController();
 
-  const getScoreBg = (score: number) => {
-    if (score >= 80) return 'bg-green-500/20 border-green-500/50';
-    if (score >= 60) return 'bg-yellow-500/20 border-yellow-500/50';
-    return 'bg-red-500/20 border-red-500/50';
-  };
+    async function fetchMomentum() {
+      setLoadingMomentum(true);
+      setMomentumError(null);
 
-  const MomentumCard = ({ result, rank }: { result: MomentumResult; rank: number }) => (
-    <div
-      className={`bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-6 border border-slate-700 cursor-pointer hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 ${getScoreBg(result.momentumScore)}`}
-      onClick={() => setSelectedSport(selectedSport === result.sport ? null : result.sport)}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold text-slate-400 bg-gradient-to-r from-red-500 to-blue-500 bg-clip-text text-transparent">
-            #{rank}
-          </div>
-          <h3 className="text-xl font-semibold text-white">{result.sport}</h3>
-        </div>
-        <div className={`text-3xl font-bold ${getScoreColor(result.momentumScore)}`}>
-          {result.momentumScore}
-        </div>
-      </div>
+      try {
+        const response = await fetch('/api/momentum', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sports),
+          signal: controller.signal,
+        });
 
-      <div className="mb-4">
-        <div className="w-full bg-slate-700 rounded-full h-3">
-          <div
-            className={`h-3 rounded-full transition-all duration-1000 ${result.momentumScore >= 80 ? 'bg-green-500' : result.momentumScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-            style={{ width: `${result.momentumScore}%` }}
-          ></div>
-        </div>
-        <p className="text-sm text-slate-400 mt-1">Momentum Score</p>
-      </div>
+        const data = (await response.json()) as { results?: MomentumResult[]; error?: string };
+        if (!response.ok) throw new Error(data.error ?? `Momentum route returned ${response.status}`);
+        if (!Array.isArray(data.results)) throw new Error('Momentum route returned an invalid payload');
 
-      <p className="text-slate-300 text-sm mb-2">{result.growthTrajectory}</p>
-      <p className="text-slate-400 text-xs">{result.preparationStatus}</p>
+        const sorted = [...data.results].sort((a, b) => b.momentumScore - a.momentumScore);
+        if (!cancelled) setMomentumData(sorted);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        if (!cancelled) setMomentumError(err instanceof Error ? err.message : 'Momentum analysis failed');
+      } finally {
+        if (!cancelled) setLoadingMomentum(false);
+      }
+    }
 
-      {selectedSport === result.sport && (
-        <div className="mt-6 pt-4 border-t border-slate-600">
-          <h4 className="text-lg font-semibold text-white mb-3">Key Milestones</h4>
-          <ul className="space-y-2 mb-4">
-            {result.keyMilestones.map((milestone, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span className="text-blue-400 mt-1">•</span>
-                <span className="text-slate-300 text-sm">{milestone}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="bg-slate-900/50 rounded p-3">
-            <p className="text-slate-300 text-sm">{result.analysis}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    fetchMomentum();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [sports]);
+
+  if (loading) return <LoadingState label="Loading Team USA momentum data" />;
+  if (error) return <LoadingState label={`Momentum data error: ${error}`} />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      <div className="container mx-auto px-4 py-12">
-        <header className="mb-16 text-center">
-          <h1 className="text-5xl font-black tracking-tighter mb-4">
-            <span className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-transparent">
-              ROAD TO LA28 MOMENTUM
-            </span>
-          </h1>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            AI-powered prediction engine ranking Team USA sports by growth trajectory and preparation milestones
-            leading to the <span className="text-yellow-400 font-semibold">2028 Los Angeles Games</span>.
-          </p>
+    <main className="relative min-h-screen overflow-hidden bg-[var(--background)] px-4 py-12 text-[var(--foreground)] md:px-8">
+      <div className="stadium-grid fixed inset-0 -z-10" />
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.52fr)] lg:items-end">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--accent-text)]">Road to LA28</p>
+            <h1 className="mt-3 max-w-4xl text-5xl font-black leading-none text-[var(--foreground)] sm:text-6xl">
+              Team USA Momentum Board
+            </h1>
+            <div className="usa-rule mt-5 h-2 max-w-xl rounded-full" />
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-[var(--muted)]">
+              A deterministic demo-safe momentum view for the highest-coverage Olympic and Paralympic sport labels,
+              with Gemini enrichment available when credentials are configured.
+            </p>
+          </div>
+          <aside className="usa-card rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 pt-7 shadow-[var(--shadow)]">
+            <p className="text-sm font-black uppercase text-[var(--info-text)]">Signal status</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-3xl font-black text-[var(--foreground)]">{sports.length}</div>
+                <div className="text-sm font-semibold text-[var(--faint)]">Sports scored</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black text-[var(--foreground)]">
+                  {loadingMomentum ? '...' : momentumData[0]?.momentumScore ?? 0}
+                </div>
+                <div className="text-sm font-semibold text-[var(--faint)]">Top score</div>
+              </div>
+            </div>
+          </aside>
         </header>
 
-        <div className="mb-8 text-center">
-          <p className="text-slate-400 mb-4">
-            Click on any sport to see detailed momentum analysis, key milestones, and preparation status.
-          </p>
-          <div className="flex justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>High Momentum (80+)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span>Building (60-79)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>Developing (0-59)</span>
-            </div>
+        {momentumError && (
+          <div className="mb-6 rounded-md border border-[color:var(--usa-red)] bg-[var(--danger-soft)] p-4 text-sm font-semibold text-[var(--danger-text)]">
+            {momentumError}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {momentumData.map((result, index) => (
-            <MomentumCard key={result.sport} result={result} rank={index + 1} />
+        <section className="mb-8 flex flex-wrap gap-3">
+          {[
+            ['High momentum', '80+'],
+            ['Building', '60-79'],
+            ['Developing', 'Below 60'],
+          ].map(([label, range], index) => (
+            <div key={label} className="flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-[var(--panel)] px-3 py-2">
+              <span className={`h-3 w-3 rounded-full ${index === 0 ? 'bg-[var(--success-text)]' : index === 1 ? 'bg-[var(--usa-red)]' : 'bg-[var(--usa-blue)]'}`} />
+              <span className="text-sm font-black text-[var(--foreground)]">{label}</span>
+              <span className="text-sm font-semibold text-[var(--faint)]">{range}</span>
+            </div>
           ))}
-        </div>
+        </section>
 
-        <div className="mt-16 text-center">
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-semibold text-white mb-4">LA28 Prediction Engine</h3>
-            <p className="text-slate-300 mb-4">
-              This momentum analysis uses AI to evaluate Team USA&apos;s growth patterns, World Championship performances,
-              and preparation milestones across all Olympic and Paralympic sports. Rankings are based on upward trajectory,
-              athlete pipeline strength, and strategic positioning for 2028 success.
-            </p>
-            <p className="text-slate-400 text-sm">
-              * Analysis powered by Gemini AI using recent performance data and development trends.
-              Scores represent relative momentum, not guaranteed outcomes.
-            </p>
+        {loadingMomentum ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="usa-card min-h-64 rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 pt-7 shadow-[var(--shadow)]">
+                <div className="h-6 w-36 rounded-md bg-[var(--panel-soft)]" />
+                <div className="mt-6 h-3 rounded-full bg-[var(--panel-soft)]" />
+                <div className="mt-5 h-20 rounded-md bg-[var(--panel-strong)]" />
+              </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {momentumData.map((result, index) => {
+              const tone = scoreTone(result.momentumScore);
+              const active = selectedSport === result.sport;
+
+              return (
+                <button
+                  key={result.sport}
+                  type="button"
+                  onClick={() => setSelectedSport(active ? null : result.sport)}
+                  className="usa-card rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 pt-7 text-left shadow-[var(--shadow)] transition hover:-translate-y-0.5 hover:border-[color:var(--accent-solid)]"
+                  style={active ? { borderColor: tone.border } : undefined}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-black uppercase text-[var(--faint)]">Rank {index + 1}</p>
+                      <h2 className="mt-1 text-2xl font-black text-[var(--foreground)]">{result.sport}</h2>
+                    </div>
+                    <div className="shrink-0 rounded-md border px-3 py-2 text-center" style={{ borderColor: tone.border, backgroundColor: tone.soft }}>
+                      <div className="text-3xl font-black" style={{ color: tone.color }}>
+                        {result.momentumScore}
+                      </div>
+                      <div className="text-xs font-black uppercase" style={{ color: tone.color }}>
+                        {tone.label}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 h-3 rounded-full bg-[var(--panel-soft)]">
+                    <div
+                      className="h-3 rounded-full transition-all"
+                      style={{ width: `${result.momentumScore}%`, backgroundColor: tone.border }}
+                    />
+                  </div>
+
+                  <p className="mt-5 text-sm leading-6 text-[var(--muted)]">{result.growthTrajectory}</p>
+                  <p className="mt-3 text-sm font-semibold text-[var(--info-text)]">{result.preparationStatus}</p>
+
+                  {active && (
+                    <div className="mt-5 border-t border-[color:var(--border)] pt-5">
+                      <h3 className="text-lg font-black text-[var(--foreground)]">Preparation milestones</h3>
+                      <ul className="mt-3 space-y-2">
+                        {result.keyMilestones.slice(0, 5).map((milestone) => (
+                          <li key={milestone} className="flex gap-2 text-sm leading-6 text-[var(--muted)]">
+                            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--usa-red)]" />
+                            <span>{milestone}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-4 rounded-md border border-[color:var(--border)] bg-[var(--panel-strong)] p-3 text-sm leading-6 text-[var(--muted)]">
+                        {result.analysis}
+                      </p>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <section className="mt-12 rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 shadow-[var(--shadow)]">
+          <p className="text-sm font-black uppercase text-[var(--accent-text)]">Model note</p>
+          <h2 className="mt-2 text-3xl font-black text-[var(--foreground)]">Momentum is a planning signal, not a promise.</h2>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-[var(--muted)]">
+            Scores use deterministic local fallback data when Gemini is unavailable and AI-generated enrichment when a
+            server-side API key is present. The board ranks relative preparation signals for demo exploration only.
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "smoke": "node scripts/product-smoke.mjs",
-    "test": "npm run lint && npm run build && npm run smoke"
+    "test": "npm run lint && npm run build:data && npm run build && npm run smoke"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -13,12 +13,13 @@ Usage:
 
 Modes:
   --dev     Install deps if needed, build data summary, start next dev. Default.
-  --prod    Install deps if needed, build data summary, build app, start next start.
+  --prod    Install deps if needed, build data summary, build app, start the standalone production server.
   --check   Run the full verification chain: lint, production build, smoke test.
   --smoke   Run the product smoke test only.
 
 Environment:
   PORT             Server port. Default: 3000.
+  HOSTNAME         Production bind host. Default: 0.0.0.0 for --prod.
   GEMINI_API_KEY   Optional. If omitted, the app runs deterministic demo mode.
 EOF
 }
@@ -79,6 +80,18 @@ fi
 echo "Preparing Team USA sport summary..."
 npm run build:data
 
+prepare_standalone_assets() {
+  if [[ ! -f .next/standalone/server.js ]]; then
+    echo "Missing .next/standalone/server.js. Run npm run build first." >&2
+    exit 1
+  fi
+
+  mkdir -p .next/standalone/.next
+  rm -rf .next/standalone/public .next/standalone/.next/static
+  cp -R public .next/standalone/public
+  cp -R .next/static .next/standalone/.next/static
+}
+
 case "$MODE" in
   check)
     npm test
@@ -88,8 +101,9 @@ case "$MODE" in
     ;;
   prod)
     npm run build
+    prepare_standalone_assets
     echo "Starting production server on http://localhost:${PORT}"
-    npm run start -- --port "$PORT"
+    HOSTNAME="${HOSTNAME:-0.0.0.0}" PORT="$PORT" node .next/standalone/server.js
     ;;
   dev)
     echo "Starting development server on http://localhost:${PORT}"

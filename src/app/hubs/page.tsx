@@ -1,157 +1,208 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParityData } from '@/useParityData';
 
-// Mock hub data - in real implementation, this would come from geographical analysis
-const sportHubs = {
-  'Swimming': {
+type HubDefinition = {
+  hubs: string[];
+  climate: string;
+  description: string;
+};
+
+type SportHub = HubDefinition & {
+  athletes: number;
+};
+
+const sportHubs: Record<string, HubDefinition> = {
+  Swimming: {
     hubs: ['California', 'Florida', 'Texas'],
-    climate: 'Coastal/Subtropical',
-    athletes: 0, // will be filled from data
-    description: 'Coastal states with access to pools and ocean training foster swimming excellence.'
+    climate: 'Coastal and subtropical',
+    description: 'Pool access, open-water culture, and warm-weather training windows support broad participation.',
   },
-  'Athletics': {
+  Athletics: {
     hubs: ['California', 'Texas', 'Florida'],
     climate: 'Varied',
-    athletes: 0,
-    description: 'States with diverse terrain and facilities support track and field development.'
+    description: 'Large talent pools, year-round meets, and mixed terrain make these useful track and field anchors.',
   },
-  'Gymnastics': {
+  Gymnastics: {
     hubs: ['California', 'Texas', 'Michigan'],
-    climate: 'Temperate',
-    athletes: 0,
-    description: 'Indoor facilities in these states provide year-round training environments.'
+    climate: 'Indoor training',
+    description: 'Dense club networks and all-season indoor facilities support early technical development.',
   },
-  'Skiing': {
+  Skiing: {
     hubs: ['Colorado', 'Utah', 'California'],
-    climate: 'Mountain/Alpine',
-    athletes: 0,
-    description: 'Mountain states with natural snow conditions and ski resorts.'
+    climate: 'Mountain and alpine',
+    description: 'Altitude, snow access, and winter-sport infrastructure create natural training advantages.',
   },
-  'Basketball': {
+  Basketball: {
     hubs: ['California', 'North Carolina', 'Indiana'],
-    climate: 'Temperate',
-    athletes: 0,
-    description: 'States with strong basketball culture and indoor facilities.'
+    climate: 'Indoor training',
+    description: 'Deep scholastic and club ecosystems produce frequent competitive reps across levels.',
   },
-  'Rowing': {
+  Rowing: {
     hubs: ['California', 'Washington', 'Connecticut'],
-    climate: 'Coastal/Temperate',
-    athletes: 0,
-    description: 'States with waterways and rowing clubs.'
+    climate: 'Coastal and temperate',
+    description: 'Waterway access and established clubs make these regions practical rowing development centers.',
   },
-  'Cycling': {
+  Cycling: {
     hubs: ['Colorado', 'California', 'Texas'],
-    climate: 'Mountain/Varied',
-    athletes: 0,
-    description: 'States with varied terrain for cycling training.'
+    climate: 'Mountain and varied',
+    description: 'Road, track, and elevation variety give cyclists different preparation environments.',
   },
-  'Wrestling': {
+  Wrestling: {
     hubs: ['Iowa', 'Pennsylvania', 'Oklahoma'],
-    climate: 'Temperate',
-    athletes: 0,
-    description: 'States with strong wrestling programs and facilities.'
+    climate: 'Indoor training',
+    description: 'Strong scholastic traditions and regional competition density support wrestler development.',
   },
-  'Volleyball': {
+  Volleyball: {
     hubs: ['California', 'Hawaii', 'Florida'],
-    climate: 'Coastal/Subtropical',
-    athletes: 0,
-    description: 'Beach and indoor volleyball culture in these states.'
+    climate: 'Coastal and indoor',
+    description: 'Beach and indoor pathways both contribute to a wide volleyball participation base.',
   },
-  'Boxing': {
+  Boxing: {
     hubs: ['California', 'New York', 'Texas'],
-    climate: 'Varied',
-    athletes: 0,
-    description: 'Urban centers with boxing gyms and programs.'
-  }
+    climate: 'Urban and varied',
+    description: 'Gym density and city competition circuits create consistent sparring and coaching access.',
+  },
 };
+
+function LoadingState({ label }: { label: string }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 text-[var(--foreground)]">
+      <div className="usa-card rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-6 pt-7 shadow-[var(--shadow)]">
+        <p className="text-sm font-black uppercase text-[var(--accent-text)]">{label}</p>
+      </div>
+    </main>
+  );
+}
 
 export default function HubsPage() {
   const { olympicStats, paralympicStats, loading, error } = useParityData();
-  const [selectedSport, setSelectedSport] = useState(null);
+  const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error: {error}</div>;
+  const enrichedHubs = useMemo<Record<string, SportHub>>(() => {
+    return Object.fromEntries(
+      Object.entries(sportHubs).map(([sport, hub]) => {
+        const olympicCount = olympicStats?.sports?.[sport]?.athleteCount ?? 0;
+        const paralympicCount = paralympicStats?.sports?.[sport]?.athleteCount ?? 0;
+        return [sport, { ...hub, athletes: olympicCount + paralympicCount }];
+      }),
+    );
+  }, [olympicStats, paralympicStats]);
 
-  // Update athlete counts from data
-  const updatedSportHubs = { ...sportHubs };
-  Object.keys(updatedSportHubs).forEach(sport => {
-    const olympicCount = olympicStats?.sports?.[sport]?.athleteCount || 0;
-    const paralympicCount = paralympicStats?.sports?.[sport]?.athleteCount || 0;
-    updatedSportHubs[sport].athletes = olympicCount + paralympicCount;
-  });
-
-  const allSports = Object.keys(updatedSportHubs).filter(sport => updatedSportHubs[sport].athletes > 0);
-
-  const HubCard = ({ hub, sport }) => (
-    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-      <h4 className="text-lg font-semibold text-white mb-2">{hub}</h4>
-      <p className="text-slate-300 text-sm mb-2">{updatedSportHubs[sport].climate} climate</p>
-      <p className="text-slate-400 text-sm">{updatedSportHubs[sport].description}</p>
-    </div>
+  const allSports = useMemo(
+    () =>
+      Object.keys(enrichedHubs)
+        .filter((sport) => enrichedHubs[sport].athletes > 0)
+        .sort((a, b) => enrichedHubs[b].athletes - enrichedHubs[a].athletes),
+    [enrichedHubs],
   );
 
-  const SportCard = ({ sport }) => (
-    <div
-      className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors"
-      onClick={() => setSelectedSport(selectedSport === sport ? null : sport)}
-    >
-      <h3 className="text-xl font-semibold text-white mb-2">{sport}</h3>
-      <p className="text-blue-400 mb-2">{updatedSportHubs[sport].athletes} Team USA athletes</p>
-      <p className="text-slate-300 text-sm">{updatedSportHubs[sport].description}</p>
-      {selectedSport === sport && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {updatedSportHubs[sport].hubs.map(hub => (
-            <HubCard key={hub} hub={hub} sport={sport} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  if (loading) return <LoadingState label="Loading hub data" />;
+  if (error) return <LoadingState label={`Hub data error: ${error}`} />;
+
+  const selectedHub = selectedSport ? enrichedHubs[selectedSport] : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      <div className="container mx-auto px-4 py-12">
-        <header className="mb-16 text-center">
-          <h1 className="text-5xl font-black tracking-tighter mb-4">
-            <span className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-transparent">
-              HOMETOWN SUCCESS ENGINE
-            </span>
-          </h1>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Discover how America&apos;s diverse landscape could help find the next Team USA stars.
-            <span className="text-yellow-400 font-semibold"> Explore geographical hubs where sports excellence thrives.</span>
-          </p>
-        </header>
-
-        <div className="mb-8">
-          <p className="text-center text-slate-400 mb-4">
-            Click on any sport to explore its geographical hubs and how local conditions foster success.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allSports.map(sport => (
-            <SportCard key={sport} sport={sport} />
-          ))}
-        </div>
-
-        <div className="mt-16 text-center">
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-semibold text-white mb-4">The American Landscape Advantage</h3>
-            <p className="text-slate-300 mb-4">
-              From coastal California beaches perfect for swimming and water sports, to the mountain peaks of Colorado
-              that nurture skiing champions, America&apos;s geographical diversity creates natural training grounds for
-              Olympic and Paralympic excellence.
-            </p>
-            <p className="text-slate-400 text-sm">
-              * Hub correlations based on historical athlete distributions and geographical factors.
-              Local conditions may contribute to success, but individual talent and dedication are always paramount.
+    <main className="relative min-h-screen overflow-hidden bg-[var(--background)] px-4 py-12 text-[var(--foreground)] md:px-8">
+      <div className="stadium-grid fixed inset-0 -z-10" />
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.52fr)] lg:items-end">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--accent-text)]">American regional pipeline</p>
+            <h1 className="mt-3 max-w-4xl text-5xl font-black leading-none text-[var(--foreground)] sm:text-6xl">
+              Hometown Success Engine
+            </h1>
+            <div className="usa-rule mt-5 h-2 max-w-xl rounded-full" />
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-[var(--muted)]">
+              A judge-friendly regional lens for exploring where climate, facilities, and local sport culture can support
+              Team USA development pathways. These are aggregate hub hypotheses, not individual athlete claims.
             </p>
           </div>
+          <aside className="usa-card rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 pt-7 shadow-[var(--shadow)]">
+            <p className="text-sm font-black uppercase text-[var(--info-text)]">Coverage</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-3xl font-black text-[var(--foreground)]">{allSports.length}</div>
+                <div className="text-sm font-semibold text-[var(--faint)]">Hub sports</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black text-[var(--foreground)]">
+                  {allSports.reduce((sum, sport) => sum + enrichedHubs[sport].athletes, 0).toLocaleString()}
+                </div>
+                <div className="text-sm font-semibold text-[var(--faint)]">Indexed entries</div>
+              </div>
+            </div>
+          </aside>
+        </header>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="grid gap-4 md:grid-cols-2">
+            {allSports.map((sport) => {
+              const hub = enrichedHubs[sport];
+              const active = selectedSport === sport;
+
+              return (
+                <button
+                  key={sport}
+                  type="button"
+                  onClick={() => setSelectedSport(active ? null : sport)}
+                  className={`usa-card min-h-52 rounded-lg border bg-[var(--panel)] p-5 pt-7 text-left shadow-[var(--shadow)] transition hover:-translate-y-0.5 hover:border-[color:var(--accent-solid)] ${
+                    active ? 'border-[color:var(--accent-solid)]' : 'border-[color:var(--border)]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-black text-[var(--foreground)]">{sport}</h2>
+                      <p className="mt-1 text-sm font-black uppercase text-[var(--accent-text)]">
+                        {hub.athletes.toLocaleString()} Team USA entries
+                      </p>
+                    </div>
+                    <span className="rounded-md bg-[var(--usa-blue)] px-3 py-2 text-sm font-black text-white">
+                      {hub.hubs.length} hubs
+                    </span>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{hub.description}</p>
+                  <p className="mt-4 text-sm font-semibold text-[var(--info-text)]">{hub.climate}</p>
+                </button>
+              );
+            })}
+          </section>
+
+          <aside className="rounded-lg border border-[color:var(--border)] bg-[var(--panel)] p-5 shadow-[var(--shadow)] lg:sticky lg:top-28 lg:self-start">
+            <p className="text-sm font-black uppercase text-[var(--accent-text)]">
+              {selectedSport ? `${selectedSport} hub map` : 'Select a sport'}
+            </p>
+            <h2 className="mt-2 text-3xl font-black text-[var(--foreground)]">
+              {selectedSport ?? 'Regional details'}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+              {selectedHub
+                ? selectedHub.description
+                : 'Choose a sport card to see the hub states and contextual training conditions.'}
+            </p>
+
+            <div className="mt-5 space-y-3">
+              {(selectedHub?.hubs ?? ['California', 'Colorado', 'Florida']).map((hub, index) => (
+                <div key={hub} className="rounded-md border border-[color:var(--border)] bg-[var(--panel-strong)] p-4">
+                  <div className="flex items-center gap-3">
+                    <span className={`h-3 w-3 rounded-full ${index === 1 ? 'bg-[var(--stripe-white)]' : index === 2 ? 'bg-[var(--usa-blue)]' : 'bg-[var(--usa-red)]'}`} />
+                    <h3 className="text-lg font-black text-[var(--foreground)]">{hub}</h3>
+                  </div>
+                  <p className="mt-2 text-sm text-[var(--faint)]">{selectedHub?.climate ?? 'Representative Team USA hub'}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-md border border-[color:var(--usa-blue)] bg-[var(--info-soft)] p-4">
+              <p className="text-sm font-semibold leading-6 text-[var(--info-text)]">
+                Hub correlations combine available aggregate sport counts with geographic context. They should guide
+                demo exploration, not imply causation or selection certainty.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

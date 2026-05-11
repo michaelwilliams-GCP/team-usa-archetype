@@ -41,6 +41,13 @@ async function assertHttp(baseUrl) {
   const html = await home.text();
   if (!html.includes('Team USA Archetype Lab')) throw new Error('Home route did not render product title');
 
+  for (const route of ['/parity', '/hubs', '/momentum']) {
+    const response = await fetch(`${baseUrl}${route}`);
+    if (!response.ok) throw new Error(`${route} returned ${response.status}`);
+    const body = await response.text();
+    if (!body.includes('<html') || body.length < 500) throw new Error(`${route} returned an invalid app shell`);
+  }
+
   const health = await fetch(`${baseUrl}/api/health`);
   if (!health.ok) throw new Error(`Health route returned ${health.status}`);
   const healthJson = await health.json();
@@ -94,6 +101,30 @@ async function assertHttp(baseUrl) {
   const result = await valid.json();
   if (result.archetypes?.length !== 3) throw new Error('API did not return exactly 3 archetypes');
   if (!result.archetypes[2]?.paralympic) throw new Error('API third archetype is not Paralympic');
+
+  const invalidMomentum = await fetch(`${baseUrl}/api/momentum`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sport: 'Swimming' }),
+  });
+  if (invalidMomentum.status !== 400) {
+    throw new Error(`Invalid momentum payload returned ${invalidMomentum.status}, expected 400`);
+  }
+
+  const validMomentum = await fetch(`${baseUrl}/api/momentum`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(['Swimming', 'Athletics']),
+  });
+  if (!validMomentum.ok) throw new Error(`Valid momentum payload returned ${validMomentum.status}`);
+  const momentum = await validMomentum.json();
+  if (momentum.results?.length !== 2) throw new Error('Momentum API did not return two results');
+  for (const item of momentum.results) {
+    if (typeof item.sport !== 'string') throw new Error('Momentum result missing sport');
+    if (typeof item.momentumScore !== 'number' || item.momentumScore < 0 || item.momentumScore > 100) {
+      throw new Error('Momentum result score is out of range');
+    }
+  }
 }
 
 function chromePath() {
@@ -315,6 +346,35 @@ async function runBrowserSmoke(baseUrl, width, height, outputName) {
 
       const screenshot = await page.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(os.tmpdir(), outputName), Buffer.from(screenshot.data, 'base64'));
+
+      for (const route of [
+        { path: '/parity', text: 'Performance Parity Board' },
+        { path: '/hubs', text: 'Hometown Success Engine' },
+        { path: '/momentum', text: 'Team USA Momentum Board' },
+      ]) {
+        await page.send('Page.navigate', { url: `${baseUrl}${route.path}` });
+        let routeReady = null;
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          const routeState = await page.send('Runtime.evaluate', {
+            expression: `(() => ({
+              ready: document.body.textContent.includes(${JSON.stringify(route.text)}),
+              viewport: innerWidth,
+              scrollWidth: document.documentElement.scrollWidth,
+              theme: document.documentElement.dataset.theme
+            }))()`,
+            returnByValue: true,
+          });
+          routeReady = routeState.result.value;
+          if (routeReady.ready) break;
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+
+        if (!routeReady?.ready) throw new Error(`${route.path} did not hydrate expected heading`);
+        if (routeReady.scrollWidth > routeReady.viewport) {
+          throw new Error(`Horizontal overflow on ${route.path} at ${width}px: ${routeReady.scrollWidth} > ${routeReady.viewport}`);
+        }
+        if (routeReady.theme !== 'light') throw new Error(`${route.path} did not preserve the selected light theme`);
+      }
     } finally {
       page.close();
     }
@@ -331,32 +391,70 @@ async function runBrowserSmoke(baseUrl, width, height, outputName) {
   }
 }
 
-const port = await getFreePort();
-const baseUrl = `http://localhost:${port}`;
-const nextBin = path.join(root, 'node_modules/.bin/next');
-const server = spawn(nextBin, ['dev', '--port', String(port)], {
-  cwd: root,
-  env: { ...process.env, GEMINI_API_KEY: '' },
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+function ensureStandaloneAssets() {
+  const standaloneDir = path.join(root, '.next/standalone');
+  const serverFile = path.join(standaloneDir, 'server.js');
+  if (!fs.existsSync(serverFile)) return null;
 
-let serverOutput = '';
-server.stdout.on('data', (chunk) => {
-  serverOutput += chunk.toString();
-});
-server.stderr.on('data', (chunk) => {
-  serverOutput += chunk.toString();
-});
+  fs.mkdirSync(path.join(standaloneDir, '.next'), { recursive: true });
+  fs.rmSync(path.join(standaloneDir, 'public'), { recursive: true, force: true });
+  fs.rmSync(path.join(standaloneDir, '.next/static'), { recursive: true, force: true });
+  fs.cpSync(path.join(root, 'public'), path.join(standaloneDir, 'public'), { recursive: true });
+  fs.cpSync(path.join(root, '.next/static'), path.join(standaloneDir, '.next/static'), { recursive: true });
+  return serverFile;
+}
+
+async function startServer() {
+  if (process.env.SMOKE_BASE_URL) {
+    return {
+      baseUrl: process.env.SMOKE_BASE_URL.replace(/\/$/, ''),
+      server: null,
+      output: () => '',
+    };
+  }
+
+  const port = await getFreePort();
+  const baseUrl = `http://localhost:${port}`;
+  const standaloneServer = ensureStandaloneAssets();
+  const command = standaloneServer ? process.execPath : path.join(root, 'node_modules/.bin/next');
+  const args = standaloneServer ? ['server.js'] : ['dev', '--port', String(port)];
+  const server = spawn(command, args, {
+    cwd: standaloneServer ? path.dirname(standaloneServer) : root,
+    env: {
+      ...process.env,
+      GEMINI_API_KEY: '',
+      HOSTNAME: '127.0.0.1',
+      PORT: String(port),
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let serverOutput = '';
+  server.stdout.on('data', (chunk) => {
+    serverOutput += chunk.toString();
+  });
+  server.stderr.on('data', (chunk) => {
+    serverOutput += chunk.toString();
+  });
+
+  return {
+    baseUrl,
+    server,
+    output: () => serverOutput,
+  };
+}
+
+const smokeTarget = await startServer();
 
 try {
-  await waitFor(baseUrl);
-  await assertHttp(baseUrl);
-  await runBrowserSmoke(baseUrl, 1440, 1100, 'team-usa-product-smoke-desktop.png');
-  await runBrowserSmoke(baseUrl, 390, 1200, 'team-usa-product-smoke-mobile.png');
+  await waitFor(smokeTarget.baseUrl);
+  await assertHttp(smokeTarget.baseUrl);
+  await runBrowserSmoke(smokeTarget.baseUrl, 1440, 1100, 'team-usa-product-smoke-desktop.png');
+  await runBrowserSmoke(smokeTarget.baseUrl, 390, 1200, 'team-usa-product-smoke-mobile.png');
   console.log('Product smoke passed');
 } catch (err) {
-  console.error(serverOutput);
+  console.error(smokeTarget.output());
   throw err;
 } finally {
-  server.kill('SIGTERM');
+  smokeTarget.server?.kill('SIGTERM');
 }

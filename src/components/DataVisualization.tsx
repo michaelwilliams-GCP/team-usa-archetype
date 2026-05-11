@@ -84,25 +84,25 @@ export function DataVisualization({ data, theme = 'dark' }: { data: SportStatMap
     theme === 'light'
       ? {
           point: '#bf0d3e',
-          pointBorder: '#111111',
-          bar: '#bf0d3e',
+          pointBorder: '#002868',
+          bar: '#002868',
           tick: '#333333',
           title: '#111111',
-          grid: '#bbae94',
-          tooltipBg: '#fffefa',
+          grid: '#c6cfdd',
+          tooltipBg: '#ffffff',
           tooltipText: '#111111',
-          tooltipBorder: '#573800',
+          tooltipBorder: '#b31942',
         }
       : {
-          point: '#f6c756',
+          point: '#ffffff',
           pointBorder: '#f8fafc',
           bar: '#bf0d3e',
           tick: '#c9c9c9',
           title: '#f2f2f2',
-          grid: '#303030',
-          tooltipBg: '#101010',
+          grid: '#343a4d',
+          tooltipBg: '#0d0f17',
           tooltipText: '#f8fafc',
-          tooltipBorder: '#f6c756',
+          tooltipBorder: '#bf0d3e',
         };
 
   const scatterData: ChartData<'scatter', ScatterPoint[]> = {
@@ -230,15 +230,15 @@ export function DataVisualization({ data, theme = 'dark' }: { data: SportStatMap
           <h2 className="mt-1 text-3xl font-black text-[var(--foreground)] sm:text-5xl">Team USA athlete profiles</h2>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[420px]">
-          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+          <div className="usa-card rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3 pt-4">
             <div className="text-xl font-black text-[var(--foreground)]">{Object.keys(data).length}</div>
             <div className="text-xs font-semibold text-[var(--faint)]">Sports</div>
           </div>
-          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+          <div className="usa-card rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3 pt-4">
             <div className="text-xl font-black text-[var(--foreground)]">{prepared.totalAthletes.toLocaleString()}</div>
             <div className="text-xs font-semibold text-[var(--faint)]">Entries</div>
           </div>
-          <div className="rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3">
+          <div className="usa-card rounded-md border border-[color:var(--border)] bg-[var(--panel)] p-3 pt-4">
             <div className="text-xl font-black text-[var(--foreground)]">{prepared.averageMedalRate}%</div>
             <div className="text-xs font-semibold text-[var(--faint)]">Avg rate</div>
           </div>

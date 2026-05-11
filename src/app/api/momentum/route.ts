@@ -1,94 +1,146 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { MODEL_NAME, withTimeout } from '@/lib/agents/utils';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+const MAX_SPORTS = 12;
+const MAX_SPORT_NAME_LENGTH = 80;
+
 type MomentumResult = {
   sport: string;
-  momentumScore: number; // 0-100
+  momentumScore: number;
   growthTrajectory: string;
   keyMilestones: string[];
   preparationStatus: string;
   analysis: string;
 };
 
-async function analyzeSportMomentum(sport: string, apiKey: string): Promise<MomentumResult> {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+type MomentumResponse = {
+  results: MomentumResult[];
+};
 
-  const prompt = `Analyze Team USA's momentum and growth trajectory for ${sport} leading to the 2028 Los Angeles Olympics (LA28).
+function clampScore(value: unknown, fallback: number) {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+}
 
-Consider:
-- Recent World Championship performances and medal counts
-- Emerging talent pipeline and youth development
-- Training facilities and program investments
-- Recent news and developments
-- Competitive landscape and international rivals
-- Preparation milestones achieved and upcoming
+function deterministicScore(sport: string) {
+  const seed = [...sport].reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 3), 0);
+  return 62 + (seed % 34);
+}
 
-Provide a momentum score from 0-100 (100 being highest momentum/growth).
-Include:
-- Growth trajectory summary (1-2 sentences)
-- Key milestones (3-5 bullet points)
-- Preparation status (1 sentence)
-- Overall analysis (2-3 sentences)
+function defaultMomentumResult(sport: string, notice?: string): MomentumResult {
+  const score = deterministicScore(sport);
+  const phase = score >= 80 ? 'strong' : score >= 70 ? 'steady' : 'developing';
 
-Format as JSON:
-{
-  "momentumScore": number,
-  "growthTrajectory": "string",
-  "keyMilestones": ["string1", "string2", "string3"],
-  "preparationStatus": "string",
-  "analysis": "string"
-}`;
+  return {
+    sport,
+    momentumScore: score,
+    growthTrajectory: `Team USA shows ${phase} development signals in ${sport}, with enough historical coverage for a practical LA28 planning view.`,
+    keyMilestones: [
+      'Review aggregate athlete coverage and sport-level body metric patterns',
+      'Identify regional hub strengths and training access constraints',
+      'Track qualification-cycle milestones through the LA28 preparation window',
+      'Keep Olympic and Paralympic pathways visible in the same product surface',
+    ],
+    preparationStatus: 'Planning signal is active; scores are relative indicators for demo exploration.',
+    analysis:
+      notice ??
+      `${sport} is scored with deterministic local logic because live Gemini enrichment is optional for the hackathon demo.`,
+  };
+}
+
+function sanitizeSports(body: unknown): string[] | null {
+  if (!Array.isArray(body) || body.length === 0 || body.length > MAX_SPORTS) return null;
+
+  const sports = new Set<string>();
+  for (const item of body) {
+    if (typeof item !== 'string') return null;
+    const sport = item.trim();
+    if (!sport || sport.length > MAX_SPORT_NAME_LENGTH) return null;
+    sports.add(sport);
+  }
+
+  return sports.size > 0 ? [...sports] : null;
+}
+
+function parseJsonObject(text: string): Record<string, unknown> | null {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] ?? text;
+  const match = fenced.match(/\{[\s\S]*\}/);
+  if (!match) return null;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
-
-    // Try to parse JSON
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        sport,
-        ...parsed
-      };
-    }
-
-    // Fallback if JSON parsing fails
-    return {
-      sport,
-      momentumScore: 75,
-      growthTrajectory: `Team USA shows steady development in ${sport} with consistent international performances.`,
-      keyMilestones: [
-        'Recent World Championship participation',
-        'Youth program expansion',
-        'Facility improvements'
-      ],
-      preparationStatus: 'On track for LA28 with ongoing development.',
-      analysis: `Analysis generated for ${sport} indicates positive momentum towards the 2028 Games.`
-    };
-  } catch (error) {
-    console.error(`Error analyzing ${sport}:`, error);
-    return {
-      sport,
-      momentumScore: 70,
-      growthTrajectory: `Team USA maintains competitive presence in ${sport}.`,
-      keyMilestones: [
-        'Consistent international participation',
-        'Athlete development programs',
-        'Technical advancements'
-      ],
-      preparationStatus: 'Building towards LA28 peak performance.',
-      analysis: `Default analysis for ${sport} - momentum building steadily.`
-    };
+    const parsed = JSON.parse(match[0]);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
   }
 }
 
-export async function POST(req: Request): Promise<NextResponse<{ results: MomentumResult[] } | { error: string }>> {
+function cleanString(value: unknown, fallback: string) {
+  return typeof value === 'string' && value.trim() ? value.trim().slice(0, 600) : fallback;
+}
+
+function cleanMilestones(value: unknown, sport: string) {
+  const fallback = defaultMomentumResult(sport).keyMilestones;
+  if (!Array.isArray(value)) return fallback;
+
+  const cleaned = value
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    .map((item) => item.trim().slice(0, 180))
+    .slice(0, 5);
+
+  return cleaned.length >= 3 ? cleaned : fallback;
+}
+
+function normalizeMomentumResult(sport: string, parsed: Record<string, unknown> | null): MomentumResult {
+  const fallback = defaultMomentumResult(sport, `Gemini enrichment returned a partial result, so ${sport} uses deterministic guardrails.`);
+  if (!parsed) return fallback;
+
+  return {
+    sport,
+    momentumScore: clampScore(parsed.momentumScore, fallback.momentumScore),
+    growthTrajectory: cleanString(parsed.growthTrajectory, fallback.growthTrajectory),
+    keyMilestones: cleanMilestones(parsed.keyMilestones, sport),
+    preparationStatus: cleanString(parsed.preparationStatus, fallback.preparationStatus),
+    analysis: cleanString(parsed.analysis, fallback.analysis),
+  };
+}
+
+async function analyzeSportMomentum(sport: string, apiKey: string): Promise<MomentumResult> {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+
+  const prompt = `Analyze Team USA's relative preparation momentum for ${sport} leading to the 2028 Los Angeles Games.
+
+Use careful language: this is a planning signal, not an outcome prediction or athlete selection claim. Consider broad public factors such as historical Team USA participation, training ecosystem maturity, youth pipeline visibility, facility access, international competitiveness, and LA28 preparation milestones.
+
+Return only JSON with this exact shape:
+{
+  "momentumScore": number,
+  "growthTrajectory": "1-2 sentences",
+  "keyMilestones": ["3-5 concise milestones"],
+  "preparationStatus": "1 sentence",
+  "analysis": "2-3 sentences"
+}`;
+
+  try {
+    const result = await withTimeout(model.generateContent(prompt), `Momentum analysis for ${sport}`);
+    const text = result.response.text();
+    return normalizeMomentumResult(sport, parseJsonObject(text));
+  } catch (error) {
+    console.error(`[/api/momentum] ${sport} analysis failed:`, error);
+    return defaultMomentumResult(
+      sport,
+      `Live Gemini enrichment was unavailable for ${sport}, so the product returned deterministic demo-mode momentum analysis.`,
+    );
+  }
+}
+
+export async function POST(req: Request): Promise<NextResponse<MomentumResponse | { error: string }>> {
   let body: unknown;
   try {
     body = await req.json();
@@ -96,39 +148,18 @@ export async function POST(req: Request): Promise<NextResponse<{ results: Moment
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  if (!Array.isArray(body) || body.length === 0) {
-    return NextResponse.json({ error: 'Body must be a non-empty array of sport names' }, { status: 400 });
+  const sports = sanitizeSports(body);
+  if (!sports) {
+    return NextResponse.json(
+      { error: `Body must be a non-empty array of up to ${MAX_SPORTS} sport names.` },
+      { status: 400 },
+    );
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    // Return demo data
-    const demoResults: MomentumResult[] = body.map((sport: string) => ({
-      sport,
-      momentumScore: Math.floor(Math.random() * 40) + 60, // 60-100
-      growthTrajectory: `Team USA shows promising development in ${sport} with strong youth programs and international results.`,
-      keyMilestones: [
-        'Recent World Championship success',
-        'Expanded training facilities',
-        'Emerging talent identification',
-        'Technical coaching advancements',
-        'LA28 preparation planning'
-      ],
-      preparationStatus: 'Actively preparing with comprehensive development programs.',
-      analysis: `Demo analysis: ${sport} demonstrates strong upward trajectory with consistent performance improvements and robust athlete pipeline feeding into LA28 preparations.`
-    }));
+  const results = apiKey
+    ? await Promise.all(sports.map((sport) => analyzeSportMomentum(sport, apiKey)))
+    : sports.map((sport) => defaultMomentumResult(sport));
 
-    return NextResponse.json({ results: demoResults }, { status: 200 });
-  }
-
-  try {
-    const results = await Promise.all(
-      body.map((sport: string) => analyzeSportMomentum(sport, apiKey))
-    );
-
-    return NextResponse.json({ results }, { status: 200 });
-  } catch (err) {
-    console.error('[/api/momentum] error:', err);
-    return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });
-  }
+  return NextResponse.json({ results }, { status: 200 });
 }
