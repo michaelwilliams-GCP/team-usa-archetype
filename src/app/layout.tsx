@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Barlow, Barlow_Condensed, Roboto_Mono } from 'next/font/google';
+import { Nav } from "@/components/Nav";
 import './globals.css';
 
 const barlow = Barlow({
@@ -47,7 +48,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Nav />
+        {children}
+      </body>
     </html>
   );
 }
