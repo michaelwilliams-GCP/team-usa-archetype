@@ -42,15 +42,19 @@ export default function ParityPage() {
   ];
 
   const StatCard = ({ title, olympic, paralympic }) => (
-    <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
+    <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-6 border border-slate-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105">
+      <h3 className="text-lg font-semibold text-white mb-4 flex items-center justify-center gap-2">
+        <span className="text-red-500">🇺🇸</span>
+        {title}
+        <span className="text-blue-500">🇺🇸</span>
+      </h3>
       <div className="grid grid-cols-2 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-400">{olympic}</div>
+        <div className="text-center p-4 rounded-md bg-red-500/10 border border-red-500/30">
+          <div className="text-2xl font-bold text-red-400">{olympic}</div>
           <div className="text-sm text-slate-400">Olympic</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-red-400">{paralympic}</div>
+        <div className="text-center p-4 rounded-md bg-blue-500/10 border border-blue-500/30">
+          <div className="text-2xl font-bold text-blue-400">{paralympic}</div>
           <div className="text-sm text-slate-400">Paralympic</div>
         </div>
       </div>
@@ -190,10 +194,17 @@ export default function ParityPage() {
       <div className="container mx-auto px-4 py-12">
         <header className="mb-16 text-center">
           <h1 className="text-5xl font-black tracking-tighter mb-4">
-            TEAM USA PERFORMANCE PARITY
+            <span className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-transparent">
+              TEAM USA
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-500 via-white to-red-500 bg-clip-text text-transparent">
+              PERFORMANCE PARITY
+            </span>
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
             Celebrating the collective power of Team USA across Olympic and Paralympic disciplines.
+            <span className="text-yellow-400 font-semibold"> Equal excellence, equal prominence.</span>
           </p>
         </header>
 

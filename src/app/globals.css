@@ -34,6 +34,56 @@
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
 }
 
+/* American Flag Background Elements */
+.stadium-grid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(191, 13, 62, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 13, 62, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+.stadium-grid::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80px;
+  height: 50px;
+  background: linear-gradient(135deg, #bf0d3e 50%, #3c3b6e 50%);
+  border-radius: 4px;
+  opacity: 0.1;
+  animation: flag-wave 8s ease-in-out infinite;
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: translateX(0) rotate(-2deg); }
+  25% { transform: translateX(5px) rotate(1deg); }
+  50% { transform: translateX(-3px) rotate(-1deg); }
+  75% { transform: translateX(2px) rotate(0.5deg); }
+}
+
+.field-stripe {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(191, 13, 62, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(59, 59, 110, 0.1) 40%,
+    rgba(59, 59, 110, 0.1) 60%,
+    rgba(191, 13, 62, 0.1) 60%,
+    rgba(191, 13, 62, 0.1) 80%,
+    transparent 80%
+  );
+  box-shadow: 0 0 20px rgba(191, 13, 62, 0.2);
+}
+
 :root[data-theme='light'] {
   color-scheme: light;
   --background: #f7f4ed;

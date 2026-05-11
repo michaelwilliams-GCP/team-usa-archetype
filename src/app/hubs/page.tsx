@@ -116,11 +116,13 @@ export default function HubsPage() {
       <div className="container mx-auto px-4 py-12">
         <header className="mb-16 text-center">
           <h1 className="text-5xl font-black tracking-tighter mb-4">
-            HOMETOWN SUCCESS ENGINE
+            <span className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-transparent">
+              HOMETOWN SUCCESS ENGINE
+            </span>
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
             Discover how America's diverse landscape could help find the next Team USA stars.
-            Explore geographical hubs where sports excellence thrives.
+            <span className="text-yellow-400 font-semibold"> Explore geographical hubs where sports excellence thrives.</span>
           </p>
         </header>
 

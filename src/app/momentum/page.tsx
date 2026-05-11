@@ -70,12 +70,14 @@ export default function MomentumPage() {
 
   const MomentumCard = ({ result, rank }: { result: MomentumResult; rank: number }) => (
     <div
-      className={`bg-slate-800/50 rounded-lg p-6 border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-all ${getScoreBg(result.momentumScore)}`}
+      className={`bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-6 border border-slate-700 cursor-pointer hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 ${getScoreBg(result.momentumScore)}`}
       onClick={() => setSelectedSport(selectedSport === result.sport ? null : result.sport)}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold text-slate-400">#{rank}</div>
+          <div className="text-2xl font-bold text-slate-400 bg-gradient-to-r from-red-500 to-blue-500 bg-clip-text text-transparent">
+            #{rank}
+          </div>
           <h3 className="text-xl font-semibold text-white">{result.sport}</h3>
         </div>
         <div className={`text-3xl font-bold ${getScoreColor(result.momentumScore)}`}>
@@ -120,11 +122,13 @@ export default function MomentumPage() {
       <div className="container mx-auto px-4 py-12">
         <header className="mb-16 text-center">
           <h1 className="text-5xl font-black tracking-tighter mb-4">
-            ROAD TO LA28 MOMENTUM
+            <span className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-transparent">
+              ROAD TO LA28 MOMENTUM
+            </span>
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
             AI-powered prediction engine ranking Team USA sports by growth trajectory and preparation milestones
-            leading to the 2028 Los Angeles Games.
+            leading to the <span className="text-yellow-400 font-semibold">2028 Los Angeles Games</span>.
           </p>
         </header>
 
